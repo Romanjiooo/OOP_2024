@@ -1,28 +1,20 @@
-import pygame
-from pygame.draw import *
+from array import *
+from random import randint
+import numpy as np
+import random
 
-pygame.init()
 
-FPS = 30
-screen = pygame.display.set_mode((400, 400))
+def create_labyrinth(m):
+    a = [["#" if random.random() < 0.4 else "." for i in range(m)] for j in range(m)]
+    matr = np.array(a)
+    i = randint(1, m - 1)
+    j = randint(1, m - 1)
 
-rect(screen, (255, 0, 255), (100, 100, 200, 200))
-rect(screen, (0, 0, 255), (100, 100, 200, 200), 5)
-polygon(screen, (255, 255, 0), [(100,100), (200,50),
-                               (300,100), (100,100)])
-polygon(screen, (0, 0, 255), [(100,100), (200,50),
-                               (300,100), (100,100)], 5)
-circle(screen, (0, 255, 0), (200, 175), 50)
-circle(screen, (255, 255, 255), (200, 175), 50, 5)
+    if a[i][j] != "#":
+        a[i][j] == "*"
+    return matr
 
-pygame.display.update()
-clock = pygame.time.Clock()
-finished = False
 
-while not finished:
-    clock.tick(FPS)
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            finished = True
-
-pygame.quit()
+m = randint(3, 6)
+labyrinth = create_labyrinth(m)
+print(labyrinth)
