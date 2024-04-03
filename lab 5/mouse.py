@@ -4,7 +4,7 @@ from random import randint,choice
 
 pygame.init()
 
-FPS = 60
+FPS = 666
 WIDTH, HEIGHT = 1200,900
 screen = pygame.display.set_mode((WIDTH,HEIGHT))
 
