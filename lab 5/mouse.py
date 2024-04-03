@@ -62,7 +62,6 @@ def check_click2(event,ball):
     distance = ((event.pos[0] - ball[0])**2 + (event.pos[1] - ball[1])**2)**0.5
     return distance > ball[2]
 
-# Создаем начальные шарики
 for _ in range(NUM_BALLS):
     balls.append(new_ball())
 
