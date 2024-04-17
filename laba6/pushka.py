@@ -11,7 +11,7 @@ class ball():
  def __init__(self,x=40,y=450):
   self.x=x
   self.y=y
-  self.r=10
+  self.r=100
   self.vx=0
   self.vy=0
   self.color=choice(['blue','green','red','brown'])
