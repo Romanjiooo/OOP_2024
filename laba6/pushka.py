@@ -21,7 +21,7 @@ class ball():
   canv.coords(self.id,self.x-self.r,self.y-self.r,self.x+self.r,self.y+self.r)
  def move(self):
   if self.y<=500:
-   self.vy-=1.2
+   self.vy-=1.2,
    self.y-=self.vy
    self.x+=self.vx
    self.vx*=0.99
