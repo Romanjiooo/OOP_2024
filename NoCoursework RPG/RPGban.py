@@ -181,15 +181,18 @@ class Combat:
 
     def attack(self, enemy):
         if enemy in self.enemies:
-            damage = 0.00000001
+            damage = 100
             enemy.health -= damage
-            print(f"Attacked {enemy.name} for {damage} damage!")
+            if enemy.health <= 0:
+                self.check_defeat()
+                print(f"{enemy.name} defeated!")
+            else:
+                print(f"Attacked {enemy.name} for {damage} damage!")
 
     def check_defeat(self):
-        for enemy in self.enemies:
-            if enemy.health <= 0:
-                self.enemies.remove(enemy)
-                print(f"{enemy.name} defeated!")
+        # Фильтруем список, оставляя только живых врагов
+        self.enemies[:] = [enemy for enemy in self.enemies if enemy.health > 0]
+
 
 class EnemySpawner:
     def __init__(self, screen, image_path, num_enemies):
@@ -201,7 +204,8 @@ class EnemySpawner:
     def spawn_enemies(self):
         for _ in range(self.num_enemies):
             start_pos = (random.randint(50, SCREEN_WIDTH - 50), random.randint(50, SCREEN_HEIGHT - 50))
-            self.enemies.append(Enemy(self.screen, self.image_path, start_pos))
+            enemy = Enemy(self.screen, self.image_path, start_pos)
+            self.enemies.append(enemy)
 
     def draw_enemies(self):
         for enemy in self.enemies:
@@ -215,17 +219,17 @@ class EnemySpawner:
         damage = 0
         for enemy in self.enemies:
             if enemy.check_collision(target_pos, damage_range):
-                damage += 5
+                damage += 0
         return damage
 
-    def clear_enemies(self):
-        self.enemies.clear()
 class Enemy:
-    def __init__(self, screen, image_path, start_pos):
+    def __init__(self, screen, image_path, start_pos, health=100):
         self.screen = screen
         self.image = pygame.transform.scale(pygame.image.load(image_path), (50, 100))
         self.pos = list(start_pos)
         self.speed = 2
+        self.health = health  # Здоровье врага
+        self.name = "Enemy"  # Название для вывод
 
     def draw(self):
         self.screen.blit(self.image, self.pos)
@@ -246,17 +250,11 @@ class Enemy:
             return True
         return False
 
-class NPC:
+class NPC(GameObject):
     def __init__(self, screen, image_path, position, dialogue):
-        self.screen = screen
-        self.image = pygame.transform.scale(pygame.image.load(image_path), (50, 100))
-        self.position = position
+        super().__init__(screen, image_path, position)
         self.dialogue = dialogue
         self.dialogue_index = 0
-        self.rect = self.image.get_rect(topleft=self.position)
-
-    def draw(self):
-        self.screen.blit(self.image, self.position)
 
     def interact(self):
         if self.dialogue_index < len(self.dialogue):
@@ -266,22 +264,16 @@ class NPC:
             print("You have already completed my dialogue.")
 
 
-class Door:
-    def __init__(self, screen, image_path, position, rect, to_scene, scale):
-        self.screen = screen
-        self.image = pygame.image.load(image_path)
-        self.image = pygame.transform.scale(self.image, scale)
-        self.position = position
-        self.rect = self.image.get_rect(topleft=rect)
-        self.to_scene = to_scene
-
-    def draw(self, screen):
-        screen.blit(self.image, self.rect)
+class Door(GameObject):
+    def __init__(self, screen, image_path, position, from_scene, to_scene, scale=(100, 200)):
+        super().__init__(screen, image_path, position, scale)
+        self.from_scene = from_scene  # Сцена, из которой "выходит" дверь
+        self.to_scene = to_scene      # Сцена, в которую "входит" дверь
 
     def interact(self, character_rect):
         if self.rect.colliderect(character_rect):
-            return self.target_scene
-        return None
+            return self.to_scene
+
 
 class Wall:
     def __init__(self, x, y, width, height):
@@ -306,15 +298,29 @@ current_scene = "menu"
 enemy_spawner = EnemySpawner(screen, "enemy_icon.png", 5)
 enemy_spawner.spawn_enemies()
 
-npcs = [
-    NPC(screen, "npc_image.png", (200, 200), ["Hello, adventurer!", "Complete my quest!"]),
-    NPC(screen, "npc_image (2).png", (400, 400), ["Need help?", "I lost something important."])
-]
-door_scale = (100, 200)
-doors = [
-    Door(screen, "door.png", (100, 100), (100, 120), "auditorium2", door_scale)
 
+
+
+npc1 = NPC(screen, "npc_image.png", (30, 50), ["Hello, adventurer!", "Complete my quest!"])
+npc2 = NPC(screen, "npc_image (2).png", (350, 350), ["Need help?", "I lost something important."])
+
+npcs = [
+    npc1,
+    npc2
 ]
+
+
+door_scale = (100, 200)
+
+door1 = Door(screen, "door_image.png", (100, 100), "game", "auditorium2", (100, 200))
+door2 = Door(screen, "door_image.png", (200, 200), "auditorium2", "game", (100, 200))
+
+doors = [
+door1,
+door2
+]
+
+combat_system = Combat(Character, enemy_spawner.enemies)
 
 while True:
     for event in pygame.event.get():
@@ -338,6 +344,10 @@ while True:
                     for npc in npcs:
                         if npc.rect.collidepoint(game.character.pos):
                             npc.interact()
+                if event.key == pygame.K_a:
+                    # Пример атаки первого врага при нажатии пробела
+                    if enemy_spawner.enemies:  # Проверяем, есть ли враги
+                        combat_system.attack(enemy_spawner.enemies[0])
                 for door in doors:
                     if door.rect.colliderect(game.character.rect):
                         current_scene = door.to_scene
@@ -351,25 +361,31 @@ while True:
         enemy_spawner.update_enemies(game.character.position)
         damage = enemy_spawner.check_collisions(game.character.position, 50)
         inventory.reduce_health(damage)
+        combat_system.check_defeat()
     elif current_scene == "auditorium2":
-        for door in doors:
-            if door.to_scene == "auditorium2":
-                door.draw()
+        game.update()
 
     screen.fill(WHITE)
     if current_scene == "menu":
         menu.draw()
     elif current_scene == "game":
         game.draw()
+        combat_system.check_defeat()
         for npc in npcs:
             npc.draw()
         inventory.draw()
         enemy_spawner.draw_enemies()
         for door in doors:
-            door.draw(screen)
-    elif current_scene == "esc":
+            door.draw()
+    elif current_scene == "auditorium2":
+        game.draw()
+        for npc in npcs:
+            npc.draw()
+        inventory.draw()
+        for door in doors:
+            door.draw()
+    elif current_scene == "esc" :
         esc_menu.draw()
 
     pygame.display.flip()
     clock.tick(FPS)
-
