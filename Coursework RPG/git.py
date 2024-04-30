@@ -413,8 +413,10 @@ door2
 ]
 
 walls = [
-    Wall(100, 100, 200, 30),
-    Wall(300, 200, 30, 150),
+    Wall(-10, 0, 800, -1),
+    Wall(-1, 1, -1, 600),
+    Wall(800, -1, 800, 600),
+    Wall(-1, 600, 800, -2)
 ]
 
 combat_system = Combat(character, enemy_spawner.enemies)  # Передаем экземпляр
