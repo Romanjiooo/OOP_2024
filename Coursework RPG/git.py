@@ -8,7 +8,7 @@ WHITE = (255, 255, 255)
 GREEN = (0, 255, 0)
 RED = (255, 0, 0)
 BROWN = (11,111,11)
-GREY = (11,111,11)
+GREY = (128,128,128)
 
 
 class EscMenu:
@@ -116,6 +116,28 @@ class Game:
         else:
             self.at_door = False
 
+    def update(self):
+        keys = pygame.key.get_pressed()
+        dx, dy = 0, 0
+        if keys[pygame.K_LEFT]:
+            dx -= 5
+        if keys[pygame.K_RIGHT]:
+            dx += 5
+        if keys[pygame.K_UP]:
+            dy -= 5
+        if keys[pygame.K_DOWN]:
+            dy += 5
+
+        # Подготовка новой позиции персонажа для проверки столкновения
+        new_rect = self.character._rect.move(dx, dy)
+
+        # Проверяем столкновение с каждой стеной
+        if not any(wall.check_collision(new_rect) for wall in walls):
+            self.character.move(dx, dy)  # Перемещаем персонажа, только если нет столкновения
+        else:
+            print("Collision detected!")  # Можно добавить обработку столкновения
+
+
 class GameObject:
     def __init__(self, screen, image_path, position, scale=(50, 100)):
         self.screen = screen
@@ -199,6 +221,7 @@ class Combat:
         closest_enemy = None
         min_distance = float('inf')
         for enemy in self.enemies:
+            # Рассчитываем расстояние от персонажа до врага
             distance = ((self.character._position[0] - enemy.pos[0]) ** 2 + (
                         self.character._position[1] - enemy.pos[1]) ** 2) ** 0.5
             if distance < min_distance:
@@ -255,8 +278,8 @@ class Enemy:
         self.image = pygame.transform.scale(pygame.image.load(image_path), (50, 100))
         self.pos = list(start_pos)
         self.speed = 2
-        self.health = health
-        self.name = "Enemy"
+        self.health = health  # Здоровье врага
+        self.name = "Enemy"  # Название для вывод
 
     def draw(self):
         self.screen.blit(self.image, self.pos)
@@ -280,9 +303,10 @@ class Enemy:
 class NPC(GameObject):
     def __init__(self, screen, image_path, position, dialogue_data):
         super().__init__(screen, image_path, position)
-        self.dialogue = Dialogue(dialogue_data)
+        self.dialogue = Dialogue(dialogue_data)  # Используем новый класс Dialogue
 
     def interact(self):
+        # Начинаем диалог с начального ключа, например "start"
         self.dialogue.start_conversation("start")
 
 
@@ -312,17 +336,17 @@ class Dialogue:
         try:
             choice = int(input("Выбери ответ (напиши цифру/число): ")) - 1
             if 0 <= choice < len(responses[1]):
-                responses[1][choice]()
+                responses[1][choice]()  # вызов callback функции для выбранного ответа
         except (ValueError, IndexError):
             print("Неверная цифра/число.")
-            self.display_conversation(self.current_conversation)
+            self.display_conversation(self.current_conversation)  # Перезапустить текущий диалог при ошибке ввода
 
 
 class Door(GameObject):
     def __init__(self, screen, image_path, position, from_scene, to_scene, scale=(100, 200)):
         super().__init__(screen, image_path, position, scale)
-        self.from_scene = from_scene
-        self.to_scene = to_scene
+        self.from_scene = from_scene  # Сцена, из которой "выходит" дверь
+        self.to_scene = to_scene      # Сцена, в которую "входит" дверь
 
     def interact(self, character_rect):
         if self.rect.colliderect(character_rect):
@@ -338,6 +362,7 @@ class Wall:
 
     def check_collision(self, character_rect):
         return self.rect.colliderect(character_rect)
+
 
 pygame.init()
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
@@ -387,7 +412,12 @@ door1,
 door2
 ]
 
-combat_system = Combat(character, enemy_spawner.enemies)
+walls = [
+    Wall(100, 100, 200, 30),
+    Wall(300, 200, 30, 150),
+]
+
+combat_system = Combat(character, enemy_spawner.enemies)  # Передаем экземпляр
 
 
 while True:
@@ -413,7 +443,8 @@ while True:
                         if npc.rect.collidepoint(game.character._position):
                             npc.interact()
                 if event.key == pygame.K_a:
-                    if enemy_spawner.enemies:
+                    # Пример атаки первого врага при нажатии пробела
+                    if enemy_spawner.enemies:  # Проверяем, есть ли враги
                         combat_system.attack_closest_enemy()
                 for door in doors:
                     if door.rect.colliderect(game.character._rect):
@@ -436,6 +467,9 @@ while True:
         menu.draw()
     elif current_scene == "game":
         game.draw()
+
+        for wall in walls:  # Отрисовка каждой стены
+            wall.draw(screen)
 
         for npc in npcs:
             npc.draw()
