@@ -384,7 +384,7 @@ while True:
         inventory.draw()
         for door in doors:
             door.draw()
-    elif current_scene == "esc":
+    elif current_scene == "esc" :
         esc_menu.draw()
 
     pygame.display.flip()
