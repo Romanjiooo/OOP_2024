@@ -246,17 +246,11 @@ class Enemy:
             return True
         return False
 
-class NPC:
+class NPC(GameObject):
     def __init__(self, screen, image_path, position, dialogue):
-        self.screen = screen
-        self.image = pygame.transform.scale(pygame.image.load(image_path), (50, 100))
-        self.position = position
+        super().__init__(screen, image_path, position)
         self.dialogue = dialogue
         self.dialogue_index = 0
-        self.rect = self.image.get_rect(topleft=self.position)
-
-    def draw(self):
-        self.screen.blit(self.image, self.position)
 
     def interact(self):
         if self.dialogue_index < len(self.dialogue):
@@ -266,22 +260,16 @@ class NPC:
             print("You have already completed my dialogue.")
 
 
-class Door:
-    def __init__(self, screen, image_path, position, rect, to_scene, scale):
-        self.screen = screen
-        self.image = pygame.image.load(image_path)
-        self.image = pygame.transform.scale(self.image, scale)
-        self.position = position
-        self.rect = self.image.get_rect(topleft=rect)
-        self.to_scene = to_scene
-
-    def draw(self, screen):
-        screen.blit(self.image, self.rect)
+class Door(GameObject):
+    def __init__(self, screen, image_path, position, from_scene, to_scene, scale=(100, 200)):
+        super().__init__(screen, image_path, position, scale)
+        self.from_scene = from_scene  # Сцена, из которой "выходит" дверь
+        self.to_scene = to_scene      # Сцена, в которую "входит" дверь
 
     def interact(self, character_rect):
         if self.rect.colliderect(character_rect):
-            return self.target_scene
-        return None
+            return self.to_scene
+
 
 class Wall:
     def __init__(self, x, y, width, height):
@@ -292,6 +280,25 @@ class Wall:
 
     def check_collision(self, character_rect):
         return self.rect.colliderect(character_rect)
+
+class SceneManager:
+    def __init__(self):
+        self.scenes = {}
+        self.current_scene = None
+
+    def add_scene(self, name, doors):
+        self.scenes[name] = doors
+
+    def change_scene(self, new_scene):
+        if new_scene in self.scenes:
+            self.current_scene = new_scene
+
+    def handle_interaction(self, character_rect):
+        for door in self.scenes[self.current_scene]:
+            if door.interact(character_rect):
+                self.change_scene(door.to_scene)
+                break
+
 
 pygame.init()
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
@@ -307,13 +314,16 @@ enemy_spawner = EnemySpawner(screen, "enemy_icon.png", 5)
 enemy_spawner.spawn_enemies()
 
 npcs = [
-    NPC(screen, "npc_image.png", (200, 200), ["Hello, adventurer!", "Complete my quest!"]),
-    NPC(screen, "npc_image (2).png", (400, 400), ["Need help?", "I lost something important."])
+    NPC(screen, "npc_image.png", (250, 250), ["Hello, adventurer!", "Complete my quest!"]),
+    NPC(screen, "npc_image (2).png", (350, 350), ["Need help?", "I lost something important."])
 ]
 door_scale = (100, 200)
-doors = [
-    Door(screen, "door.png", (100, 100), (100, 120), "auditorium2", door_scale)
+door1 = Door(screen, "door_image.png", (100, 100), "auditorium1", "auditorium2", (100, 200))
+door2 = Door(screen, "door_image.png", (200, 200), "auditorium2", "auditorium1", (100, 200))
 
+doors = [
+door1,
+door2
 ]
 
 while True:
@@ -362,10 +372,9 @@ while True:
         inventory.draw()
         enemy_spawner.draw_enemies()
         for door in doors:
-            door.draw(screen)
+            door.draw()
     elif current_scene == "esc":
         esc_menu.draw()
 
     pygame.display.flip()
     clock.tick(FPS)
-
