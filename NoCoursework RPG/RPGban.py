@@ -351,6 +351,10 @@ while True:
         enemy_spawner.update_enemies(game.character.position)
         damage = enemy_spawner.check_collisions(game.character.position, 50)
         inventory.reduce_health(damage)
+    elif current_scene == "auditorium2":
+        for door in doors:
+            if door.to_scene == "auditorium2":
+                door.draw()
 
     screen.fill(WHITE)
     if current_scene == "menu":
