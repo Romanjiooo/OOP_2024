@@ -86,15 +86,17 @@ class Game:
         self.screen = screen
         self.character = Character(screen, "character.png", [50, 50])
         self.background = pygame.transform.scale(pygame.image.load("auditorium_background.png"), (SCREEN_WIDTH, SCREEN_HEIGHT))
-        self.door = pygame.transform.scale(pygame.image.load("door.png"), (100, 200))
-        self.door_pos = [SCREEN_WIDTH - 150, 280]
-        self.at_door = False
+        self.current_scene = "initial_scene"
+        self.damage_boost = 0
+
+    def update_scene(self, new_scene):
+        if new_scene != self.current_scene:
+            self.current_scene = new_scene
+            self.damage_boost += 10  # Increase damage by 10 each time the scene changes
 
     def draw(self):
         self.screen.blit(self.background, (0, 0))
-        self.screen.blit(self.door, self.door_pos)
         self.character.draw()
-
 
     def update(self):
         keys = pygame.key.get_pressed()
@@ -112,6 +114,7 @@ class Game:
             self.at_door = True
         else:
             self.at_door = False
+
 
     def update(self):
         keys = pygame.key.get_pressed()
@@ -133,6 +136,7 @@ class Game:
             self.character.move(dx, dy)  # Перемещаем персонажа, только если нет столкновения
         else:
             print("Нельзя пройти!")  # Можно добавить обработку столкновения
+
 
 
 class GameObject:
@@ -204,15 +208,18 @@ class Inventory:
 
     def reset_game(self):
         print("Game Over! Restarting...")
+        global current_scene, enemy_spawner, game
+        current_scene = "menu"  # Change the current scene to menu
+        enemy_spawner.reset_spawn()  # Reset or disable enemy spawner
+        game = None  # Optionally reset the game state completely
         self.health = 1000
-        self.items = []
-        return 'restart'
 
 
 class Combat:
-    def __init__(self, character, enemies):
+    def __init__(self, character, enemies, game):
         self.character = character
         self.enemies = enemies
+        self.game = game
 
     def find_closest_enemy(self):
         closest_enemy = None
@@ -227,15 +234,12 @@ class Combat:
         return closest_enemy
 
     def attack_closest_enemy(self):
-        if not self.enemies:
-            print("No enemies to attack.")
-            return
-
         enemy = self.find_closest_enemy()
         if enemy:
-            damage = 50
-            enemy.health -= damage
-            print(f"Attacked {enemy.name} for {damage} damage!")
+            base_damage = 50
+            total_damage = base_damage + self.game.damage_boost  # Apply the damage boost
+            enemy.health -= total_damage
+            print(f"Attacked {enemy.name} for {total_damage} damage!")
             if enemy.health <= 0:
                 self.enemies.remove(enemy)
                 print(f"{enemy.name} defeated!")
@@ -272,7 +276,7 @@ class EnemySpawner:
         damage = 0
         for enemy in self.enemies:
             if enemy.check_collision(target_pos, damage_range):
-                damage += 0
+                damage += 5
         return damage
 
 class Enemy:
@@ -304,14 +308,16 @@ class Enemy:
         return False
 
 class NPC(GameObject):
-    def __init__(self, screen, image_path, position, dialogue_data):
+    def __init__(self, screen, image_path, position, dialogue_data, door):
         super().__init__(screen, image_path, position)
         self.dialogue = Dialogue(dialogue_data, self.on_dialogue_complete)
+        self.door = door  # Добавляем дверь как атрибут
         self.enemies_active = False
 
     def on_dialogue_complete(self):
         self.enemies_active = True
-        enemy_spawner.reset_spawn()  # Сброс спавна после завершения диалога
+        self.door.unlock()  # Разблокировать дверь после завершения диалога
+        enemy_spawner.reset_spawn()
 
     def interact(self):
         self.dialogue.start_conversation("start")
@@ -354,10 +360,15 @@ class Door(GameObject):
         super().__init__(screen, image_path, position, scale)
         self.from_scene = from_scene  # Сцена, из которой "выходит" дверь
         self.to_scene = to_scene      # Сцена, в которую "входит" дверь
+        self.is_locked = True  # Дверь изначально заблокирована
+
+    def unlock(self):
+        self.is_locked = False
 
     def interact(self, character_rect):
-        if self.rect.colliderect(character_rect):
+        if self.rect.colliderect(character_rect) and not self.is_locked:
             return self.to_scene
+
 
 
 class Wall:
@@ -400,22 +411,53 @@ security_dialogue = {
                 ([], []))
 }
 
-npc1 = NPC(screen, "npc_image.png", (30, 50), security_dialogue)
-npc2 = NPC(screen, "npc_image (2).png", (350, 350), security_dialogue)
+
+door_scale = (20, 50)
+
+door_security_to_BMSTA = Door(screen, "door_image.png", (100, 100), "game", "auditorium2", door_scale)
+door_BMSTA_to_security = Door(screen, "door_image.png", (200, 200), "auditorium2", "game", (100, 200))
+
+#door3 = Door(screen, "door_image.png", (200, 200), "auditorium2", "game", (100, 200))
+#door4 = Door(screen, "door_image.png", (200, 200), "auditorium2", "game", (100, 200))
+'''
+door5 = Door(screen, "door_image.png", (200, 200), "auditorium2", "game", (100, 200))
+door6 = Door(screen, "door_image.png", (200, 200), "auditorium2", "game", (100, 200))
+door7 = Door(screen, "door_image.png", (200, 200), "auditorium2", "game", (100, 200))
+door8 = Door(screen, "door_image.png", (200, 200), "auditorium2", "game", (100, 200))
+door9 = Door(screen, "door_image.png", (200, 200), "auditorium2", "game", (100, 200))
+door10 = Door(screen, "door_image.png", (200, 200), "auditorium2", "game", (100, 200))
+'''
+
+class SecurityDoor(Door):
+    def __init__(self, screen, position):
+        super().__init__(screen, "security_door_image.png", position, "game", "security_room")
+
+class AuditoriumDoor(Door):
+    def __init__(self, screen, position):
+        super().__init__(screen, "auditorium_door_image.png", position, "auditorium", "auditorium2")
+        self.is_locked = False  # Example of overriding default behavior
+
+
+doors = [
+door_security_to_BMSTA,
+door_BMSTA_to_security,
+#door3,
+]
+#door3,
+'''
+door4,
+door5,
+door6,
+door7,
+door8,
+'''
+
+npc1 = NPC(screen, "npc_image.png", (30, 50), security_dialogue, door_security_to_BMSTA)
+npc2 = NPC(screen, "npc_image (2).png", (350, 350),security_dialogue, door_BMSTA_to_security)
 
 npcs = [
     npc1,
     npc2
-]
-
-door_scale = (100, 200)
-
-door1 = Door(screen, "door_image.png", (100, 100), "game", "auditorium2", (100, 200))
-door2 = Door(screen, "door_image.png", (200, 200), "auditorium2", "game", (100, 200))
-
-doors = [
-door1,
-door2
 ]
 
 walls = [
@@ -425,7 +467,7 @@ walls = [
     Wall(-1, 600, 800, -2) #нижняя
 ]
 
-combat_system = Combat(character, enemy_spawner.enemies)
+combat_system = Combat(character, enemy_spawner.enemies, game)
 
 previous_scene = None
 
@@ -438,11 +480,21 @@ while True:
         if current_scene == "menu":
             result = menu.update(event)
             if result == "start":
+                game = Game(screen)  # Initialize game when starting
+                enemy_spawner.reset_spawn()  # Ensure enemies are reset
                 current_scene = "game"
             elif result == "quit":
                 pygame.quit()
                 sys.exit()
-        elif current_scene != "menu" and current_scene != "esc":
+
+        elif current_scene == "esc":
+            result = esc_menu.update(event)
+            if result == "cancel":
+                current_scene = previous_scene
+            elif result is None:
+                continue  # Continue event loop without changing state
+
+        elif game:
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     previous_scene = current_scene
@@ -457,29 +509,44 @@ while True:
                         combat_system.attack_closest_enemy()
                 for door in doors:
                     if door.rect.colliderect(game.character._rect):
-                        current_scene = door.to_scene
-        elif current_scene == "esc":
-            result = esc_menu.update(event)
-            if result == "cancel":
-                current_scene = previous_scene
+                        if not door.is_locked:
+                            game.update_scene(door.to_scene)  # Обновляем сцену, если дверь не заблокирована
+                            current_scene = door.to_scene
+                        else:
+                            print(
+                                "The door is locked. You must talk to the NPC first.")  # Уведомляем игрока, если дверь заблокирована
 
-    if current_scene == "game":
+    if current_scene == "game" and game:
         game.update()
 
-        damage = enemy_spawner.check_collisions(game.character._position, 50)
-        inventory.reduce_health(damage)
         if npc1.enemies_active:
             enemy_spawner.draw_enemies()
 
             enemy_spawner.update_enemies(game.character._position)
+
             enemy_spawner.spawn_enemies()
+            damage = enemy_spawner.check_collisions(game.character._position, 50)
+            if damage:
+                inventory.reduce_health(damage)
     elif current_scene == "auditorium2":
+        game.update()
+
+        if npc2.enemies_active:
+            enemy_spawner.draw_enemies()
+
+            enemy_spawner.update_enemies(game.character._position)
+
+            enemy_spawner.spawn_enemies()
+            damage = enemy_spawner.check_collisions(game.character._position, 50)
+            if damage:
+                inventory.reduce_health(damage)
+    elif current_scene == "auditorium3":
         game.update()
 
     screen.fill(WHITE)
     if current_scene == "menu":
         menu.draw()
-    elif current_scene == "game":
+    elif current_scene == "game" and game:
         game.draw()
 
         for wall in walls:  # Отрисовка каждой стены
@@ -494,12 +561,18 @@ while True:
             enemy_spawner.update_enemies(game.character._position)
             enemy_spawner.spawn_enemies()
         for door in doors:
-            door1.draw()
+            door_security_to_BMSTA.draw()
     elif current_scene == "auditorium2":
         game.draw()
         for door in doors:
-            door2.draw()
+            door_BMSTA_to_security.draw()
+        for npc in npcs:
+            npc2.draw()
+        if npc2.enemies_active:
+            enemy_spawner.draw_enemies()
 
+            enemy_spawner.update_enemies(game.character._position)
+            enemy_spawner.spawn_enemies()
         inventory.draw()
     elif current_scene == "esc" :
         esc_menu.draw()
