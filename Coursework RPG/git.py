@@ -88,16 +88,13 @@ class Game:
         self.background = pygame.transform.scale(pygame.image.load("auditorium_background.png"), (SCREEN_WIDTH, SCREEN_HEIGHT))
         self.door = pygame.transform.scale(pygame.image.load("door.png"), (100, 200))
         self.door_pos = [SCREEN_WIDTH - 150, 280]
-        self.action_button = pygame.transform.scale(pygame.image.load("action_button.png"), (50, 50))
-        self.action_button_pos = [SCREEN_WIDTH - 200, 50]
         self.at_door = False
 
     def draw(self):
         self.screen.blit(self.background, (0, 0))
         self.screen.blit(self.door, self.door_pos)
         self.character.draw()
-        if self.at_door:
-            self.screen.blit(self.action_button, self.action_button_pos)
+
 
     def update(self):
         keys = pygame.key.get_pressed()
@@ -135,7 +132,7 @@ class Game:
         if not any(wall.check_collision(new_rect) for wall in walls):
             self.character.move(dx, dy)  # Перемещаем персонажа, только если нет столкновения
         else:
-            print("Collision detected!")  # Можно добавить обработку столкновения
+            print("Нельзя пройти!")  # Можно добавить обработку столкновения
 
 
 class GameObject:
@@ -250,12 +247,18 @@ class EnemySpawner:
         self.enemies = []
         self.image_path = image_path
         self.num_enemies = num_enemies
+        self.spawned = False  # Добавляем флаг, который контролирует, был ли спавн
 
     def spawn_enemies(self):
-        for _ in range(self.num_enemies):
-            start_pos = (random.randint(50, SCREEN_WIDTH - 50), random.randint(50, SCREEN_HEIGHT - 50))
-            enemy = Enemy(self.screen, self.image_path, start_pos)
-            self.enemies.append(enemy)
+        if not self.spawned:  # Проверяем, был ли уже спавн
+            for _ in range(self.num_enemies):
+                start_pos = (random.randint(50, SCREEN_WIDTH - 50), random.randint(50, SCREEN_HEIGHT - 50))
+                enemy = Enemy(self.screen, self.image_path, start_pos)
+                self.enemies.append(enemy)
+            self.spawned = True  # Устанавливаем флаг в True после спавна
+
+    def reset_spawn(self):
+        self.spawned = False  # Метод для сброса флага спавна
 
     def draw_enemies(self):
         for enemy in self.enemies:
@@ -277,7 +280,7 @@ class Enemy:
         self.screen = screen
         self.image = pygame.transform.scale(pygame.image.load(image_path), (50, 100))
         self.pos = list(start_pos)
-        self.speed = 2
+        self.speed = 1
         self.health = health  # Здоровье врага
         self.name = "Enemy"  # Название для вывод
 
@@ -303,18 +306,22 @@ class Enemy:
 class NPC(GameObject):
     def __init__(self, screen, image_path, position, dialogue_data):
         super().__init__(screen, image_path, position)
-        self.dialogue = Dialogue(dialogue_data)  # Используем новый класс Dialogue
+        self.dialogue = Dialogue(dialogue_data, self.on_dialogue_complete)
+        self.enemies_active = False
+
+    def on_dialogue_complete(self):
+        self.enemies_active = True
+        enemy_spawner.reset_spawn()  # Сброс спавна после завершения диалога
 
     def interact(self):
-        # Начинаем диалог с начального ключа, например "start"
         self.dialogue.start_conversation("start")
 
 
-
 class Dialogue:
-    def __init__(self, conversations):
+    def __init__(self, conversations, callback=None):
         self.conversations = conversations
         self.current_conversation = None
+        self.callback = callback  # Callback для активации врагов
 
     def start_conversation(self, start_key):
         self.current_conversation = start_key
@@ -324,12 +331,10 @@ class Dialogue:
         if key not in self.conversations:
             print("Dialogue finished or not found.")
             return
-
         question, responses = self.conversations[key]
         print(question)
         for idx, response in enumerate(responses[0]):
             print(f"{idx + 1}: {response}")
-
         self.get_player_input(responses)
 
     def get_player_input(self, responses):
@@ -337,6 +342,8 @@ class Dialogue:
             choice = int(input("Выбери ответ (напиши цифру/число): ")) - 1
             if 0 <= choice < len(responses[1]):
                 responses[1][choice]()  # вызов callback функции для выбранного ответа
+                if self.callback:
+                    self.callback()  # Вызов callback после завершения диалога
         except (ValueError, IndexError):
             print("Неверная цифра/число.")
             self.display_conversation(self.current_conversation)  # Перезапустить текущий диалог при ошибке ввода
@@ -375,11 +382,10 @@ inventory = Inventory(screen)
 current_scene = "menu"
 
 enemy_spawner = EnemySpawner(screen, "enemy_icon.png", 5)
-enemy_spawner.spawn_enemies()
 
 
 character = Character(screen, "character_image.png", [50,50])
-dialogue_data = {
+security_dialogue = {
     "start": ("Привет, первокур! Че надо?",
              (["Cпросить как пройти к ноге.", "Сказать 'Пошёл ты'. "],
               [lambda: npc.dialogue.display_conversation("quest"), lambda: npc.dialogue.display_conversation("goodbye")])),
@@ -394,8 +400,8 @@ dialogue_data = {
                 ([], []))
 }
 
-npc1 = NPC(screen, "npc_image.png", (30, 50), dialogue_data)
-npc2 = NPC(screen, "npc_image (2).png", (350, 350), ["Need help?", "I lost something important."])
+npc1 = NPC(screen, "npc_image.png", (30, 50), security_dialogue)
+npc2 = NPC(screen, "npc_image (2).png", (350, 350), security_dialogue)
 
 npcs = [
     npc1,
@@ -413,14 +419,15 @@ door2
 ]
 
 walls = [
-    Wall(-10, 0, 800, -1),
-    Wall(-1, 1, -1, 600),
-    Wall(800, -1, 800, 600),
-    Wall(-1, 600, 800, -2)
+    Wall(-10, 0, 800, -1), #левая
+    Wall(-1, 1, -1, 600), #верхняя
+    Wall(800, -1, 800, 600), #правая
+    Wall(-1, 600, 800, -2) #нижняя
 ]
 
-combat_system = Combat(character, enemy_spawner.enemies)  # Передаем экземпляр
+combat_system = Combat(character, enemy_spawner.enemies)
 
+previous_scene = None
 
 while True:
     for event in pygame.event.get():
@@ -435,9 +442,10 @@ while True:
             elif result == "quit":
                 pygame.quit()
                 sys.exit()
-        elif current_scene == "game":
+        elif current_scene != "menu" and current_scene != "esc":
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
+                    previous_scene = current_scene
                     esc_menu.activate()
                     current_scene = "esc"
                 if event.key == pygame.K_SPACE:
@@ -445,8 +453,7 @@ while True:
                         if npc.rect.collidepoint(game.character._position):
                             npc.interact()
                 if event.key == pygame.K_a:
-                    # Пример атаки первого врага при нажатии пробела
-                    if enemy_spawner.enemies:  # Проверяем, есть ли враги
+                    if enemy_spawner.enemies:
                         combat_system.attack_closest_enemy()
                 for door in doors:
                     if door.rect.colliderect(game.character._rect):
@@ -454,13 +461,18 @@ while True:
         elif current_scene == "esc":
             result = esc_menu.update(event)
             if result == "cancel":
-                current_scene = "game"
+                current_scene = previous_scene
 
     if current_scene == "game":
         game.update()
-        enemy_spawner.update_enemies(game.character._position)
+
         damage = enemy_spawner.check_collisions(game.character._position, 50)
         inventory.reduce_health(damage)
+        if npc1.enemies_active:
+            enemy_spawner.draw_enemies()
+
+            enemy_spawner.update_enemies(game.character._position)
+            enemy_spawner.spawn_enemies()
     elif current_scene == "auditorium2":
         game.update()
 
@@ -476,16 +488,19 @@ while True:
         for npc in npcs:
             npc.draw()
         inventory.draw()
-        enemy_spawner.draw_enemies()
+        if npc1.enemies_active:
+            enemy_spawner.draw_enemies()
+
+            enemy_spawner.update_enemies(game.character._position)
+            enemy_spawner.spawn_enemies()
         for door in doors:
-            door.draw()
+            door1.draw()
     elif current_scene == "auditorium2":
         game.draw()
-        for npc in npcs:
-            npc.draw()
-        inventory.draw()
         for door in doors:
-            door.draw()
+            door2.draw()
+
+        inventory.draw()
     elif current_scene == "esc" :
         esc_menu.draw()
 
