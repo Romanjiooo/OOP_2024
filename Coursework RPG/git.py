@@ -310,24 +310,30 @@ class Enemy:
 class NPC(GameObject):
     def __init__(self, screen, image_path, position, dialogue_data, door):
         super().__init__(screen, image_path, position)
-        self.dialogue = Dialogue(dialogue_data, self.on_dialogue_complete)
-        self.door = door  # Добавляем дверь как атрибут
+        self.door = door
         self.enemies_active = False
+        self.dialogue = Dialogue(dialogue_data, self.on_dialogue_complete)
 
     def on_dialogue_complete(self):
+        # Открываем дверь и активируем врагов только если условия диалога это предусматривают
         self.enemies_active = True
-        self.door.unlock()  # Разблокировать дверь после завершения диалога
-        enemy_spawner.reset_spawn()
+        if self.door and self.door.is_locked:
+            self.door.unlock()
 
     def interact(self):
         self.dialogue.start_conversation("start")
+
+    def unlock_door(self):
+        print("Unlocking the door")
+
+        self.door.unlock()
 
 
 class Dialogue:
     def __init__(self, conversations, callback=None):
         self.conversations = conversations
         self.current_conversation = None
-        self.callback = callback  # Callback для активации врагов
+        self.callback = callback
 
     def start_conversation(self, start_key):
         self.current_conversation = start_key
@@ -341,13 +347,13 @@ class Dialogue:
         print(question)
         for idx, response in enumerate(responses[0]):
             print(f"{idx + 1}: {response}")
-        self.get_player_input(responses)
+        self.get_player_input(responses[1])
 
     def get_player_input(self, responses):
         try:
             choice = int(input("Выбери ответ (напиши цифру/число): ")) - 1
-            if 0 <= choice < len(responses[1]):
-                responses[1][choice]()  # вызов callback функции для выбранного ответа
+            if 0 <= choice < len(responses):
+                responses[choice]()  # вызов callback функции для выбранного ответа
                 if self.callback:
                     self.callback()  # Вызов callback после завершения диалога
         except (ValueError, IndexError):
@@ -363,6 +369,7 @@ class Door(GameObject):
         self.is_locked = True  # Дверь изначально заблокирована
 
     def unlock(self):
+        print("Unlocking the door")
         self.is_locked = False
 
     def interact(self, character_rect):
@@ -396,6 +403,13 @@ enemy_spawner = EnemySpawner(screen, "enemy_icon.png", 5)
 
 
 character = Character(screen, "character_image.png", [50,50])
+
+
+door_scale = (20, 50)
+
+#door_security_to_BMSTA = Door(screen, "door_image.png", (100, 100), "game", "auditorium2", door_scale)
+door_BMSTA_to_security = Door(screen, "door_image.png", (200, 200), "auditorium2", "game", (100, 200))
+
 security_dialogue = {
     "start": ("Привет, первокур! Че надо?",
              (["Cпросить как пройти к ноге.", "Сказать 'Пошёл ты'. "],
@@ -412,47 +426,38 @@ security_dialogue = {
 }
 
 
-door_scale = (20, 50)
+class SecurityNPC(NPC):
+    def __init__(self, screen, image_path, position, door):
+        dialogue_data = {
+            "start": ("Привет, первокур! Что тебе нужно?",
+                      (["Cпросить как пройти к аудитории.", "Сказать 'Пошёл ты'."],
+                       [lambda: self.dialogue.display_conversation("quest"), lambda: self.dialogue.display_conversation("goodbye")])),
+            "quest": ("Пройди через зал и победи всех нарушителей, затем я открою дверь.",
+                      (["Принять вызов.", "Отказаться."],
+                       [lambda: self.dialogue.display_conversation("accept"), lambda: self.dialogue.display_conversation("decline")])),
+            "goodbye": ("Чао какао.", ([], [])),
+            "accept": ("Удачи в битве!", ([], [lambda: self.activate_enemies()])),
+            "decline": ("Ну и ладно, сторонись от меня.", ([], []))
+        }
+        super().__init__(screen, image_path, position, dialogue_data, door)
 
+    def activate_enemies(self):
+        self.enemies_active = True
+        self.unlock_door()
+
+    def on_dialogue_complete(self):
+        # При необходимости добавить дополнительные действия после диалога
+        pass
+
+# Пример использования класса SecurityNPC
 door_security_to_BMSTA = Door(screen, "door_image.png", (100, 100), "game", "auditorium2", door_scale)
-door_BMSTA_to_security = Door(screen, "door_image.png", (200, 200), "auditorium2", "game", (100, 200))
-
-#door3 = Door(screen, "door_image.png", (200, 200), "auditorium2", "game", (100, 200))
-#door4 = Door(screen, "door_image.png", (200, 200), "auditorium2", "game", (100, 200))
-'''
-door5 = Door(screen, "door_image.png", (200, 200), "auditorium2", "game", (100, 200))
-door6 = Door(screen, "door_image.png", (200, 200), "auditorium2", "game", (100, 200))
-door7 = Door(screen, "door_image.png", (200, 200), "auditorium2", "game", (100, 200))
-door8 = Door(screen, "door_image.png", (200, 200), "auditorium2", "game", (100, 200))
-door9 = Door(screen, "door_image.png", (200, 200), "auditorium2", "game", (100, 200))
-door10 = Door(screen, "door_image.png", (200, 200), "auditorium2", "game", (100, 200))
-'''
-
-class SecurityDoor(Door):
-    def __init__(self, screen, position):
-        super().__init__(screen, "security_door_image.png", position, "game", "security_room")
-
-class AuditoriumDoor(Door):
-    def __init__(self, screen, position):
-        super().__init__(screen, "auditorium_door_image.png", position, "auditorium", "auditorium2")
-        self.is_locked = False  # Example of overriding default behavior
-
-
+npc1 = SecurityNPC(screen, "security_npc_image.png", (50, 100), door_security_to_BMSTA)
 doors = [
 door_security_to_BMSTA,
 door_BMSTA_to_security,
 #door3,
 ]
-#door3,
-'''
-door4,
-door5,
-door6,
-door7,
-door8,
-'''
 
-npc1 = NPC(screen, "npc_image.png", (30, 50), security_dialogue, door_security_to_BMSTA)
 npc2 = NPC(screen, "npc_image (2).png", (350, 350),security_dialogue, door_BMSTA_to_security)
 
 npcs = [
