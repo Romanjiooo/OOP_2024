@@ -270,6 +270,27 @@ class EnemySpawner:
                 damage += 5
         return damage
 
+    def activate_enemies(self):
+        self.enemies_active = True
+        print("Enemies activated:", self.enemies_active)
+        self.unlock_door()
+
+    def enemies_active(self):
+        self.enemies_active = True
+        print("Enemies activated:", self.enemies_active)
+        self.unlock_door()
+
+    def draw_enemies(self):
+        if self.enemies_active:
+            for enemy in self.enemies:
+                enemy.draw()
+
+    def update_enemies(self, target_pos):
+        if self.enemies_active:
+            for enemy in self.enemies:
+                enemy.update(target_pos)
+
+
 class Enemy:
     def __init__(self, screen, image_path, start_pos, health=100):
         self.screen = screen
@@ -372,9 +393,6 @@ class Door(GameObject):
         elif self.is_locked:
             print("The door is locked. You must talk to the NPC first.")
 
-
-
-
 class Wall:
     def __init__(self, x, y, width, height):
         self.rect = pygame.Rect(x, y, width, height)
@@ -385,126 +403,6 @@ class Wall:
     def check_collision(self, character_rect):
         return self.rect.colliderect(character_rect)
 
-class Auditorium:
-    def __init__(self, screen, npc, door):
-        self.screen = screen
-        self.npc = npc
-        self.door = door
-        self.enemies_active = False
-
-    def interact(self):
-        self.npc.interact()
-
-    def unlock_door(self):
-        self.door.unlock()
-
-class StartingAuditorium(Auditorium):
-    def __init__(self, screen, npc, door):
-        super().__init__(screen, npc, door)
-
-    def activate_enemies(self):
-        self.enemies_active = True
-        self.unlock_door()
-
-class Auditorium2(Auditorium):
-    def __init__(self, screen, npc, door):
-        super().__init__(screen, npc, door)
-
-    def activate_enemies(self):
-        self.enemies_active = True
-        self.unlock_door()
-
-
-pygame.init()
-screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-clock = pygame.time.Clock()
-
-hwnd = pygame.display.get_wm_info()["window"]
-win32gui.SetWindowPos(hwnd, win32con.HWND_TOPMOST, 600, 250, 800, 600, 0)
-
-menu = Menu(screen)
-game = Game(screen)
-esc_menu = EscMenu(screen, game)
-inventory = Health(screen)
-current_scene = "menu"
-
-enemy_spawner = EnemySpawner(screen, "enemy_icon.png", 5)
-
-
-character = Character(screen, "character_image.png", [50,50])
-
-
-door_scale = (20, 50)
-
-class SecurityNPC(NPC):
-    def __init__(self, screen, image_path, position, door):
-        dialogue_data = {
-            "start": ("Привет, первокур! Что тебе нужно?",
-                      (["Cпросить как пройти к аудитории.", "Сказать 'Пошёл ты'."],
-                       [lambda: self.dialogue.display_conversation("quest"), lambda: self.dialogue.display_conversation("goodbye")])),
-            "quest": ("Пройди через зал и победи всех нарушителей, затем я открою дверь.",
-                      (["Принять вызов.", "Отказаться."],
-                       [lambda: self.dialogue.display_conversation("accept"), lambda: self.dialogue.display_conversation("decline")])),
-            "goodbye": ("Чао какао.", ([], [])),
-            "accept": ("Удачи в битве!", ([], [lambda: self.activate_enemies()])),
-            "decline": ("Ну и ладно, сторонись от меня.", ([], []))
-        }
-        super().__init__(screen, image_path, position, dialogue_data, door)
-
-    def activate_enemies(self):
-        self.enemies_active = True
-        self.unlock_door()
-
-    def on_dialogue_complete(self):
-        pass
-
-class SecurityDoor(Door):
-    def __init__(self, screen, image_path, position, from_scene, to_scene):
-        super().__init__(screen, image_path, position, from_scene, to_scene, scale=(100, 200))
-
-    def unlock(self):
-        super().unlock()
-        print("Security door has been unlocked!")
-
-class ExitDoor(Door):
-    def __init__(self, screen, image_path, position, from_scene, to_scene):
-        super().__init__(screen, image_path, position, from_scene, to_scene, scale=(150, 300))
-        self.is_locked = False
-
-    def interact(self, character_rect):
-        if self.rect.colliderect(character_rect):
-            print("Exiting the game scene.")
-            return self.to_scene
-
-door1 = SecurityDoor(screen, "door_image.png", (100, 100), "game", "auditorium2")
-door2 = ExitDoor(screen, "door_image.png", (300, 200), "auditorium2", "game")
-
-doors = [
-door1,
-door2,
-#door3,
-]
-
-npc1 = SecurityNPC(screen, "npc_image.png", (50, 100), door1)
-npc2 = SecurityNPC(screen, "npc_image.png", (200, 150), door2)
-
-npcs = [
-    npc1,
-    npc2
-]
-
-walls = [
-    Wall(-10, 0, 800, -1), #левая
-    Wall(-1, 1, -1, 600), #верхняя
-    Wall(800, -1, 800, 600), #правая
-    Wall(-1, 600, 800, -2) #нижняя
-]
-
-combat_system = Combat(character, enemy_spawner.enemies, game)
-
-previous_scene = None
-
-game = StartingAuditorium(screen, npc1, door1)
 
 class Auditorium:
     def __init__(self, screen, background_image_path, npcs, doors, walls, enemies):
@@ -540,6 +438,111 @@ class Auditorium:
                     return door.to_scene
         return None
 
+pygame.init()
+screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+clock = pygame.time.Clock()
+
+hwnd = pygame.display.get_wm_info()["window"]
+win32gui.SetWindowPos(hwnd, win32con.HWND_TOPMOST, 600, 250, 800, 600, 0)
+
+menu = Menu(screen)
+game = Game(screen)
+esc_menu = EscMenu(screen, game)
+inventory = Health(screen)
+current_scene = "menu"
+
+enemy_spawner = EnemySpawner(screen, "enemy_icon.png", 5)
+character = Character(screen, "character_image.png", [50,50])
+
+class SecurityNPC(NPC):
+    def __init__(self, screen, image_path, position, door, enemy_spawner, inventory):
+        dialogue_data = {
+            "start": ("Привет, первокур! Что тебе нужно?",
+                      (["Cпросить как пройти к аудитории.", "Сказать 'Пошёл ты'."],
+                       [lambda: self.dialogue.display_conversation("quest"), lambda: self.dialogue.display_conversation("goodbye")])),
+            "quest": ("Пройди через зал и победи всех нарушителей, затем я открою дверь.",
+                      (["Принять вызов.", "Отказаться."],
+                       [lambda: self.dialogue.display_conversation("accept"), lambda: self.dialogue.display_conversation("decline")])),
+            "goodbye": ("Чао какао.", ([], [])),
+            "accept": ("Удачи в битве!", ([], [lambda: self.activate_enemies()])),
+            "decline": ("Ну и ладно, сторонись от меня.", ([], []))
+        }
+        super().__init__(screen, image_path, position, dialogue_data, door)
+        self.door = door
+        self.enemies_active = False
+        self.enemy_spawner = enemy_spawner
+        self.inventory = inventory
+
+    def activate_enemies(self):
+        print("Activating enemies...")
+        self.enemies_active = True
+        self.enemy_spawner.spawn_enemies()  # Мгновенный спавн врагов при активации
+        self.unlock_door()
+
+    def update_enemies(self, character_position):
+        if self.enemies_active:
+            self.enemy_spawner.update_enemies(character_position)
+            damage = self.enemy_spawner.check_collisions(character_position, 50)
+            if damage:
+                self.inventory.reduce_health(damage)
+
+    def draw_enemies(self):
+        if self.enemies_active:
+            self.enemy_spawner.draw_enemies()
+
+    def unlock_door(self):
+        if self.door:
+            self.door.unlock()
+            print("Door unlocked!")
+
+
+class SecurityDoor(Door):
+    def __init__(self, screen, image_path, position, from_scene, to_scene):
+        super().__init__(screen, image_path, position, from_scene, to_scene, scale=(100, 200))
+
+    def unlock(self):
+        super().unlock()
+        print("Security door has been unlocked!")
+
+class ExitDoor(Door):
+    def __init__(self, screen, image_path, position, from_scene, to_scene):
+        super().__init__(screen, image_path, position, from_scene, to_scene, scale=(150, 300))
+        self.is_locked = False
+
+    def interact(self, character_rect):
+        if self.rect.colliderect(character_rect):
+            print("Exiting the game scene.")
+            return self.to_scene
+
+door1 = SecurityDoor(screen, "door_image.png", (100, 100), "game", "auditorium2")
+door2 = ExitDoor(screen, "door_image.png", (300, 200), "auditorium2", "game")
+
+doors = [
+door1,
+door2,
+#door3,
+]
+
+# Предполагается, что переменные enemy_spawner и inventory уже инициализированы в вашем коде.
+Security = SecurityNPC(screen, "npc_image.png", (50, 100), door1, enemy_spawner, inventory)
+#Varvaraa = SecurityNPC(screen, "npc_image.png", (200, 150), door2)
+
+npcs = [
+    Security,
+    #Varvaraa
+]
+
+walls = [
+    Wall(-10, 0, 800, -1), #левая
+    Wall(-1, 1, -1, 600), #верхняя
+    Wall(800, -1, 800, 600), #правая
+    Wall(-1, 600, 800, -2) #нижняя
+]
+
+combat_system = Combat(character, enemy_spawner.enemies, game)
+
+previous_scene = None
+
 class SecurityRoom(Auditorium):
     def __init__(self, screen, background_image_path, npcs, doors, walls, enemies, inventory):
         super().__init__(screen, background_image_path, npcs, doors, walls, enemies)
@@ -559,12 +562,11 @@ class SecurityRoom(Auditorium):
         game.character.draw()
 enemies = enemy_spawner.enemies
 
-security_location = SecurityRoom(screen, "auditorium_background.png", [npc1], [door1], walls, enemies, inventory)
-
-
+security_location = SecurityRoom(screen, "auditorium_background.png", [Security], [door1], walls, enemies, inventory)
 
 auditoriums = {
-    "game": security_location
+    "game": security_location,
+    "faculty": faculty_location
 }
 
 while True:
@@ -615,10 +617,14 @@ while True:
     if current_scene == "game" and game:
         auditoriums[current_scene].draw()
         game.update()
+
+        if Security.enemies_active:
+            Security.update_enemies(game.character.get_position())
+
     elif current_scene == "auditorium2":
         game.update()
 
-        if npc2.enemies_active:
+        if Varvaraa.enemies_active:
             enemy_spawner.draw_enemies()
 
             enemy_spawner.update_enemies(game.character._position)
@@ -639,8 +645,8 @@ while True:
         for door in doors:
             door2.draw()
         for npc in npcs:
-            npc2.draw()
-        if npc2.enemies_active:
+            Varvaraa.draw()
+        if Varvaraa.enemies_active:
             enemy_spawner.draw_enemies()
 
             enemy_spawner.update_enemies(game.character._position)
