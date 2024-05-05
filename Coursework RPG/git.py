@@ -523,7 +523,6 @@ door2,
 #door3,
 ]
 
-# Предполагается, что переменные enemy_spawner и inventory уже инициализированы в вашем коде.
 Security = SecurityNPC(screen, "npc_image.png", (50, 100), door1, enemy_spawner, inventory)
 #Varvaraa = SecurityNPC(screen, "npc_image.png", (200, 150), door2)
 
