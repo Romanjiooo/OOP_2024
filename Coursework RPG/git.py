@@ -488,7 +488,7 @@ class SecurityNPC(NPC):
     def activate_enemies(self):
         print("Activating enemies...")
         self.enemies_active = True
-        self.enemy_spawner.spawn_enemies()  # Мгновенный спавн врагов при активации
+        self.enemy_spawner.spawn_enemies()
         self.unlock_door()
 
     def update_enemies(self, character_position):
@@ -670,7 +670,7 @@ while True:
                         else:
                             print(
                                 "The door is locked. You must talk to the NPC first.")
-    if result == "start" or current_scene == "faculty":  # При переходе в локацию faculty
+    if result == "start" or current_scene == "faculty":
         enemy_spawner.reset_spawn()
 
     if current_scene == "game" and game:
