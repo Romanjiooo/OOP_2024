@@ -12,6 +12,46 @@ RED = (255, 0, 0)
 BROWN = (11,111,11)
 GREY = (128,128,128)
 
+class GameState:
+    def __init__(self, screen):
+        self.screen = screen
+        self.is_running = True
+        self.states = {
+            "menu": Menu(screen),
+            "game": Game(screen),
+            "esc_menu": EscMenu(screen, self.states["game"]),
+            "inventory": Inventory(screen),
+        }
+        self.current_state = "menu"
+
+    def run(self):
+        clock = pygame.time.Clock()
+        while self.is_running:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    self.is_running = False
+                self.handle_event(event)
+
+            self.update()
+            self.draw()
+            pygame.display.flip()
+            clock.tick(FPS)
+
+    def handle_event(self, event):
+        state = self.states[self.current_state]
+        result = state.update(event)
+        if result:
+            self.change_state(result)
+
+    def update(self):
+        self.states[self.current_state].update()
+
+    def draw(self):
+        self.states[self.current_state].draw()
+
+    def change_state(self, new_state):
+        self.current_state = new_state
+
 
 class EscMenu:
     def __init__(self, screen, game):
@@ -406,9 +446,28 @@ class Auditorium:
     def unlock_door(self):
         self.door.unlock()
 
+class StartingAuditorium(Auditorium):
+    def __init__(self, screen, npc, door):
+        super().__init__(screen, npc, door)
+
+    def activate_enemies(self):
+        self.enemies_active = True
+        self.unlock_door()
+
+class Auditorium2(Auditorium):
+    def __init__(self, screen, npc, door):
+        super().__init__(screen, npc, door)
+
+    def activate_enemies(self):
+        self.enemies_active = True
+        self.unlock_door()
+
+
 pygame.init()
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-clock = pygame.time.Clock()
+game_state = GameState(screen)
+game_state.run()
+
 
 hwnd = pygame.display.get_wm_info()["window"]
 win32gui.SetWindowPos(hwnd, win32con.HWND_TOPMOST, 600, 250, 800, 600, 0)
@@ -426,6 +485,21 @@ character = Character(screen, "character_image.png", [50,50])
 
 
 door_scale = (20, 50)
+
+security_dialogue = {
+    "start": ("Привет, первокур! Че надо?",
+             (["Cпросить как пройти к ноге.", "Сказать 'Пошёл ты'. "],
+              [lambda: npc.dialogue.display_conversation("quest"), lambda: npc.dialogue.display_conversation("goodbye")])),
+    "quest": ("Победи всех МСУшников, которые сюда лезут. Потом скажу где это.",
+             (["Окэ, квест принят.", "Аревуар, сам разберусь."],
+              [lambda: npc.dialogue.display_conversation("accept"), lambda: npc.dialogue.display_conversation("decline")])),
+    "goodbye": ("Чао какао.",
+                ([], [])),
+    "accept": ("В атаку на нежить, вот тебе лук.",
+               ([], [])),
+    "decline": ("Адьос.",
+                ([], []))
+}
 
 class SecurityNPC(NPC):
     def __init__(self, screen, image_path, position, door):
@@ -496,79 +570,12 @@ walls = [
 combat_system = Combat(character, enemy_spawner.enemies, game)
 
 previous_scene = None
-enemies = enemy_spawner.enemies
 
-class Auditorium:
-    def __init__(self, screen, background_image_path, npcs, doors, walls, enemies):
-        self.screen = screen
-        self.background = pygame.transform.scale(pygame.image.load(background_image_path), (SCREEN_WIDTH, SCREEN_HEIGHT))
-        self.npcs = npcs
-        self.doors = doors
-        self.walls = walls
-        self.enemies = enemies
+game = StartingAuditorium(screen, npc1, door1)
 
-    def draw(self):
-        # Отрисовка фона
-        self.screen.blit(self.background, (0, 0))
-
-        # Отрисовка стен
-        for wall in self.walls:
-            wall.draw(self.screen)
-        # Отрисовка дверей
-        for door in self.doors:
-            door.draw()
-        # Отрисовка NPC
-        for npc in self.npcs:
-            npc.draw()
-        # Отрисовка врагов
-        for enemy in self.enemies:
-            enemy.draw()
-
-
-    def update(self, event):
-        for npc in self.npcs:
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_SPACE:
-                    if npc.rect.collidepoint(game.character._position):
-                        npc.interact()
-        for door in self.doors:
-            if door.rect.colliderect(game.character._rect):
-                if not door.is_locked:
-                    return door.to_scene
-        return None
-
-class SecurityRoom(Auditorium):
-    def __init__(self, screen, background_image_path, npcs, doors, walls, enemies, inventory):
-        super().__init__(screen, background_image_path, npcs, doors, walls, enemies)
-        self.inventory = inventory  # Добавление инвентаря для управления предметами и здоровьем
-
-    def update(self, event):
-        super().update(event)  # Вызов базовой реализации для NPC и дверей
-        # Дополнительная логика специфичная для SecurityRoom
-        for enemy in self.enemies:
-            enemy.update(game.character.get_position())  # Обновление позиции врагов
-
-            # Проверка коллизий и нанесение урона
-            if enemy.check_collision(game.character.get_position(), 50):
-                self.inventory.reduce_health(5)  # Уменьшение здоровья при столкновении
-
-    def draw(self):
-        super().draw()  # Отрисовка фона, стен, дверей, NPC и врагов
-        self.inventory.draw()  # Отрисовка инвентаря
-        game.character.draw()
-
-# Создание объекта аудитории для сцены "game"
-security_location = SecurityRoom(screen, "auditorium_background.png", [npc1], [door1], walls, enemies, inventory)
-
-
-# Словарь аудиторий
-auditoriums = {
-    "game": security_location
-}
 
 while True:
-    events = pygame.event.get()
-    for event in events:
+    for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
             sys.exit()
@@ -603,20 +610,62 @@ while True:
                     if enemy_spawner.enemies:
                         combat_system.attack_closest_enemy()
 
-        if current_scene in auditoriums:
-            # Обновление и отрисовка для текущей аудитории
-            new_scene = auditoriums[current_scene].update(event)  # Передаём событие в update
-            if new_scene:
-                current_scene = new_scene
+    if current_scene == "game" and game:
+        game.update()
+
+        if npc1.enemies_active:
+            enemy_spawner.draw_enemies()
+            enemy_spawner.update_enemies(game.character._position)
+
+            enemy_spawner.spawn_enemies()
+            damage = enemy_spawner.check_collisions(game.character._position, 50)
+            if damage:
+                inventory.reduce_health(damage)
+    elif current_scene == "auditorium2":
+        game.update()
+
+        if npc2.enemies_active:
+            enemy_spawner.draw_enemies()
+
+            enemy_spawner.update_enemies(game.character._position)
+
+            enemy_spawner.spawn_enemies()
+            damage = enemy_spawner.check_collisions(game.character._position, 50)
+            if damage:
+                inventory.reduce_health(damage)
 
     screen.fill(WHITE)
     if current_scene == "menu":
         menu.draw()
-    elif current_scene in auditoriums:
-        auditoriums[current_scene].draw()
-        game.update()  # Обновление должно происходить после отрисовки
+    elif current_scene == "game" and game:
+        game.draw()
 
-    elif current_scene == "esc":
+        for wall in walls:
+            wall.draw(screen)
+
+        for npc in npcs:
+            npc.draw()
+        inventory.draw()
+        if npc1.enemies_active:
+            enemy_spawner.draw_enemies()
+
+            enemy_spawner.update_enemies(game.character._position)
+            enemy_spawner.spawn_enemies()
+        for door in doors:
+            door1.draw()
+    elif current_scene == "auditorium2":
+        game.draw()
+        for door in doors:
+            door2.draw()
+        for npc in npcs:
+            npc2.draw()
+        if npc2.enemies_active:
+            enemy_spawner.draw_enemies()
+
+            enemy_spawner.update_enemies(game.character._position)
+            enemy_spawner.spawn_enemies()
+        inventory.draw()
+    elif current_scene == "esc" :
         esc_menu.draw()
 
     pygame.display.flip()
