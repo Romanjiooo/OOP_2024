@@ -16,6 +16,7 @@ class BaseMenu:
         self.font = pygame.font.Font(None, 48)
         self.options = options
         self.selected_index = 0
+
     def draw(self):
         for index, option in enumerate(self.options):
             color = GREEN if index == self.selected_index else RED
@@ -23,6 +24,7 @@ class BaseMenu:
             x = SCREEN_WIDTH // 2 - label.get_width() // 2
             y = SCREEN_HEIGHT // 2 - label.get_height() // 2 + 50 * index
             self.screen.blit(label, (x, y))
+
     def update(self, event):
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_UP:
@@ -149,11 +151,8 @@ class Health:
     def draw(self):
         x_start = 200
         y_start = 500
-        icon_size = 40
-        for idx, item in enumerate(self.items):
-            self.screen.blit(item['icon'], (x_start + idx * (icon_size + 5), y_start))
 
-        pygame.draw.rect(self.screen, RED, (10, y_start + 50, self.health_bar_width, 20))
+        pygame.draw.rect(self.screen, RED, (10, y_start + 50, self.health_bar_width+180, 20))
         pygame.draw.rect(self.screen, GREEN, (10, y_start + 50, self.health_bar_width * (self.health / 100), 20))
 
     def reduce_health(self, amount):
@@ -657,6 +656,7 @@ while True:
         game.update()
 
     screen.fill(WHITE)
+
 
     if current_scene == "menu":
         menu.draw()
