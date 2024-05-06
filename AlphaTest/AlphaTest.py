@@ -16,7 +16,6 @@ class BaseMenu:
         self.font = pygame.font.Font(None, 48)
         self.options = options
         self.selected_index = 0
-
     def draw(self):
         for index, option in enumerate(self.options):
             color = GREEN if index == self.selected_index else RED
@@ -24,7 +23,6 @@ class BaseMenu:
             x = SCREEN_WIDTH // 2 - label.get_width() // 2
             y = SCREEN_HEIGHT // 2 - label.get_height() // 2 + 50 * index
             self.screen.blit(label, (x, y))
-
     def update(self, event):
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_UP:
@@ -38,14 +36,10 @@ class BaseMenu:
 class Menu(BaseMenu):
     def __init__(self, screen, background_image_path):
         super().__init__(screen, ["Start Game", "Quit"])
-        # Загрузка и масштабирование фонового изображения
         self.background_image = pygame.image.load(background_image_path)
-
     def draw(self):
-        # Отрисовка фонового изображения вместо заливки цветом
         self.screen.blit(self.background_image, (0, 0))
         super().draw()
-
     def update(self, event):
         result = super().update(event)
         if result == "Start Game":
@@ -54,18 +48,15 @@ class Menu(BaseMenu):
             pygame.quit()
             sys.exit()
         return None
-
 class EscMenu(BaseMenu):
     def __init__(self, screen, game):
         super().__init__(screen, ["Quit", "Cancel"])
         self.game = game
         self.active = False
-
     def draw(self):
         if self.active:
-            self.screen.fill((0, 0, 0, 128))  # Полупрозрачный фон
+            self.screen.fill((0, 0, 0, 128))
             super().draw()
-
     def update(self, event):
         if self.active:
             result = super().update(event)
@@ -87,16 +78,13 @@ class Game:
         self.background = pygame.transform.scale(pygame.image.load("auditorium_background.png"), (SCREEN_WIDTH, SCREEN_HEIGHT))
         self.current_scene = "initial_scene"
         self.damage_boost = 0
-
     def update_scene(self, new_scene):
         if new_scene != self.current_scene:
             self.current_scene = new_scene
             self.damage_boost += 10
-
     def draw(self):
         self.screen.blit(self.background, (0, 0))
         self.character.draw()
-
     def update(self):
         keys = pygame.key.get_pressed()
         dx, dy = 0, 0
@@ -108,9 +96,7 @@ class Game:
             dy -= 5
         if keys[pygame.K_DOWN]:
             dy += 5
-
         new_rect = self.character._rect.move(dx, dy)
-
         if not any(wall.check_collision(new_rect) for wall in walls):
             self.character.move(dx, dy)
         else:
@@ -671,7 +657,6 @@ while True:
         game.update()
 
     screen.fill(WHITE)
-
 
     if current_scene == "menu":
         menu.draw()
