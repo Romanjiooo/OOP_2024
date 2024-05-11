@@ -38,10 +38,14 @@ class BaseMenu:
 class Menu(BaseMenu):
     def __init__(self, screen, background_image_path):
         super().__init__(screen, ["Start Game", "Quit"])
+        # Загрузка и масштабирование фонового изображения
         self.background_image = pygame.image.load(background_image_path)
+
     def draw(self):
+        # Отрисовка фонового изображения вместо заливки цветом
         self.screen.blit(self.background_image, (0, 0))
         super().draw()
+
     def update(self, event):
         result = super().update(event)
         if result == "Start Game":
@@ -50,15 +54,18 @@ class Menu(BaseMenu):
             pygame.quit()
             sys.exit()
         return None
+
 class EscMenu(BaseMenu):
     def __init__(self, screen, game):
         super().__init__(screen, ["Quit", "Cancel"])
         self.game = game
         self.active = False
+
     def draw(self):
         if self.active:
-            self.screen.fill((0, 0, 0, 128))
+            self.screen.fill((0, 0, 0, 128))  # Полупрозрачный фон
             super().draw()
+
     def update(self, event):
         if self.active:
             result = super().update(event)
@@ -80,13 +87,16 @@ class Game:
         self.background = pygame.transform.scale(pygame.image.load("auditorium_background.png"), (SCREEN_WIDTH, SCREEN_HEIGHT))
         self.current_scene = "initial_scene"
         self.damage_boost = 0
+
     def update_scene(self, new_scene):
         if new_scene != self.current_scene:
             self.current_scene = new_scene
             self.damage_boost += 10
+
     def draw(self):
         self.screen.blit(self.background, (0, 0))
         self.character.draw()
+
     def update(self):
         keys = pygame.key.get_pressed()
         dx, dy = 0, 0
@@ -98,7 +108,9 @@ class Game:
             dy -= 5
         if keys[pygame.K_DOWN]:
             dy += 5
+
         new_rect = self.character._rect.move(dx, dy)
+
         if not any(wall.check_collision(new_rect) for wall in walls):
             self.character.move(dx, dy)
         else:
@@ -151,8 +163,11 @@ class Health:
     def draw(self):
         x_start = 200
         y_start = 500
+        icon_size = 40
+        for idx, item in enumerate(self.items):
+            self.screen.blit(item['icon'], (x_start + idx * (icon_size + 5), y_start))
 
-        pygame.draw.rect(self.screen, RED, (10, y_start + 50, self.health_bar_width+180, 20))
+        pygame.draw.rect(self.screen, RED, (10, y_start + 50, self.health_bar_width, 20))
         pygame.draw.rect(self.screen, GREEN, (10, y_start + 50, self.health_bar_width * (self.health / 100), 20))
 
     def reduce_health(self, amount):
@@ -339,7 +354,7 @@ class Dialogue:
 
 
 class Door(GameObject):
-    def __init__(self, screen, image_path, position, from_scene, to_scene, scale=(100,0)):
+    def __init__(self, screen, image_path, position, from_scene, to_scene, scale=(100, 200)):
         super().__init__(screen, image_path, position, scale)
         self.from_scene = from_scene
         self.to_scene = to_scene
@@ -349,11 +364,20 @@ class Door(GameObject):
         print("Дверь открыта!")
         self.is_locked = False
 
-    def interact(self, character_rect):
-        if self.rect.colliderect(character_rect) and not self.is_locked:
+    def lock(self):
+        print("Дверь закрыта!")
+        self.is_locked = True
+
+    def interact(self, character_rect, current_scene):
+        if self.rect.colliderect(character_rect) and not self.is_locked and self.from_scene == current_scene:
+            print(f"Переход из {self.from_scene} в {self.to_scene}")
             return self.to_scene
         elif self.is_locked:
             print("Дверь закрыта, поговорите сначала с NPC!")
+        else:
+            print("Дверь не активна из текущей локации!")
+            return None
+
 
 class Wall:
     def __init__(self, x, y, width, height):
@@ -519,39 +543,38 @@ class VarvaraNPC(NPC):
             self.door.unlock()
             print("Проход в новую локацию открыт!")
 
-class SecurityDoor(Door):
-    def __init__(self, screen, image_path, position, from_scene, to_scene):
-        super().__init__(screen, image_path, position, from_scene, to_scene, scale=(100, 50))
-
-    def unlock(self):
-        super().unlock()
-        print("Проход в новую локацию открыт!")
-
 class ExitDoor(Door):
-    def __init__(self, screen, image_path, position, from_scene, to_scene):
-        super().__init__(screen, image_path, position, from_scene, to_scene, scale=(100, 50))
-        self.is_locked = False
+    def interact(self, character_rect, current_scene):
+        return super().interact(character_rect, current_scene)
 
-    def interact(self, character_rect):
-        if self.rect.colliderect(character_rect):
-            print("Exiting the game scene.")
-            return self.to_scene
+class SecurityDoor(Door):
+    def interact(self, character_rect, current_scene):
+        return super().interact(character_rect, current_scene)
 
+class StairDoor(Door):
+    def interact(self, character_rect, current_scene):
+        return super().interact(character_rect, current_scene)
 
 DoorGameToFaculty = SecurityDoor(screen, "SecurityDoor.png", (450, 100), "game", "faculty")
 DoorFacultytoGame = ExitDoor(screen, "door_image.png", (300, 200), "faculty", "game")
+DoorFacultytoStair = StairDoor(screen, "door_image.png", (350, 250), "faculty", "stair")
+
 
 doors = [
 DoorGameToFaculty,
-DoorFacultytoGame
+DoorFacultytoGame,
+DoorFacultytoStair
 ]
 
 Security = SecurityNPC(screen, "security.png", (400, 150), DoorGameToFaculty, enemy_spawner, inventory)
 Varvara = VarvaraNPC(screen, "npc_image.png", (200, 200), DoorFacultytoGame, enemy_spawner, inventory)
+Varvara2 = VarvaraNPC(screen, "npc_image.png", (250, 250), DoorFacultytoStair, enemy_spawner, inventory)
+
 
 npcs = [
     Security,
-    Varvara
+    Varvara,
+    Varvara2
 ]
 
 class SecurityLocation(Auditorium):
@@ -590,12 +613,32 @@ class FacultyLocation(Auditorium):
         self.inventory.draw()
         game.character.draw()
 
+class stairLocation(Auditorium):
+    def __init__(self, screen, background_image_path, npcs, doors, walls, enemies, inventory):
+        super().__init__(screen, background_image_path, npcs, doors, walls, enemies)
+        self.inventory = inventory
+
+    def update(self, event):
+        super().update(event)
+        for enemy in self.enemies:
+            enemy.update(game.character.get_position())
+
+            if enemy.check_collision(game.character.get_position(), 50):
+                self.inventory.reduce_health(5)
+
+    def draw(self):
+        super().draw()
+        self.inventory.draw()
+        game.character.draw()
+
 security_location = SecurityLocation(screen, "auditorium_background.png", [Security], [DoorGameToFaculty], walls_security[:4], enemies, inventory)
-faculty_location = FacultyLocation(screen, "auditorium_background.png", [Varvara], [DoorFacultytoGame], walls[:3], enemies, inventory)
+faculty_location = FacultyLocation(screen, "auditorium_background.png", [Varvara,Varvara2], [DoorFacultytoGame, DoorFacultytoStair], walls[:3], enemies, inventory)
+stair = stairLocation(screen, "auditorium_background.png", [Varvara], [DoorFacultytoStair], walls[:3], enemies, inventory)
 
 auditoriums = {
     "game": security_location,
-    "faculty": faculty_location
+    "faculty": faculty_location,
+    "stair": stair
 }
 
 while True:
@@ -636,12 +679,12 @@ while True:
                         combat_system.attack_closest_enemy()
                 for door in doors:
                     if door.rect.colliderect(game.character._rect):
-                        if not door.is_locked:
-                            game.update_scene(door.to_scene)
-                            current_scene = door.to_scene
+                        new_scene = door.interact(game.character._rect, current_scene)
+                        if new_scene:
+                            current_scene = new_scene
+                            print(f"Переход в сцену {current_scene}")
                         else:
-                            print(
-                                "Проход в слующую локацию закрыт, поговрите сначала с NPC!")
+                            print("Дверь не может быть использована с этой локации или она закрыта.")
 
     if current_scene == "game" and game:
         enemy_spawner.reset_spawn()
@@ -655,9 +698,11 @@ while True:
         enemy_spawner.reset_spawn()
         auditoriums[current_scene].draw()
         game.update()
+    elif current_scene == "stair":
+        auditoriums[current_scene].draw()
+        game.update()
 
     screen.fill(WHITE)
-
 
     if current_scene == "menu":
         menu.draw()
@@ -666,7 +711,7 @@ while True:
         auditoriums[current_scene].draw()
         game.update()
 
-    elif current_scene == "faculty":
+    elif current_scene == "faculty" or current_scene == "stair":
         auditoriums[current_scene].draw()
         game.update()
 
