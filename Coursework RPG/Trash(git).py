@@ -1,7 +1,6 @@
-from classes import *
+from Trash(classes) import *
 import pygame
 import sys
-import random
 import win32gui
 import win32con
 
@@ -15,7 +14,6 @@ GREY = (128,128,128)
 pygame.init()
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 clock = pygame.time.Clock()
-
 hwnd = pygame.display.get_wm_info()["window"]
 win32gui.SetWindowPos(hwnd, win32con.HWND_TOPMOST, 600, 250, 800, 600, 0)
 
@@ -24,41 +22,30 @@ game = Game(screen)
 esc_menu = EscMenu(screen, game)
 inventory = Health(screen)
 current_scene = "menu"
+character = Character(screen, "character_image.png", [50,50])
 previous_scene = None
 
 enemy_spawner = EnemySpawner(screen, "enemy_icon.png", 5)
-character = Character(screen, "character_image.png", [50,50])
-
 combat_system = Combat(character, enemy_spawner.enemies, game)
 enemies = enemy_spawner.enemies
 
 DoorGameToFaculty = SecurityDoor(screen, "SecurityDoor.png", (450, 100), "game", "faculty")
-DoorFacultytoStair = StairDoor(screen, "DoorFacultytoStair.png", (100, 280), "faculty", "stair")
-DoorStairtoIU = StairDoor(screen, "exit.png", (700, 400), "stair", "iu404")
-DoorIUtoFinal = StairDoor(screen, "door_image.png", (600, 350), "iu404", "final")
+DoorFacultytoGame = ExitDoor(screen, "door_image.png", (300, 200), "faculty", "game")
+DoorFacultytoMainStair = StairDoor(screen, "door_image.png", (350, 250), "faculty", "stair")
 
-doors = [
-DoorGameToFaculty,
-DoorFacultytoStair,
-DoorStairtoIU,
-DoorIUtoFinal
-]
+doors = [DoorGameToFaculty, DoorFacultytoGame, DoorFacultytoMainStair]
+doors_security = [DoorGameToFaculty]
+doors_faculty = [DoorFacultytoGame, DoorFacultytoMainStair]
+doors_stair = [DoorFacultytoMainStair]
 
 Security = SecurityNPC(screen, "security.png", (400, 150), DoorGameToFaculty, enemy_spawner, inventory)
-Varvara = VarvaraNPC(screen, "varvara.png", (200, 450), DoorFacultytoStair, enemy_spawner, inventory)
-Gopnik = GopnikNPC(screen, "enemy_icon.png", (250, 250), DoorStairtoIU, enemy_spawner, inventory)
-KA = KANPC(screen, "KA.png", (250, 300), DoorIUtoFinal, enemy_spawner, inventory)
+Varvara = VarvaraNPC(screen, "npc_image.png", (200, 200), DoorFacultytoMainStair, enemy_spawner, inventory)
 
-npcs = [
-    Security,
-    Varvara,
-    Gopnik,
-    KA
-]
+npcs = [Security, Varvara]
 
 class SecurityLocation(Auditorium):
-    def __init__(self, screen, background_image_path, npcs, doors, walls_security, enemies, inventory):
-        super().__init__(screen, background_image_path, npcs, doors, walls_security, enemies)
+    def __init__(self, screen, background_image_path, npcs, doors_security, walls_security, enemies, inventory):
+        super().__init__(screen, background_image_path, npcs, doors_security, walls_security, enemies)
         self.inventory = inventory
 
     def update(self, event):
@@ -75,8 +62,8 @@ class SecurityLocation(Auditorium):
         game.character.draw()
 
 class FacultyLocation(Auditorium):
-    def __init__(self, screen, background_image_path, npcs, doors, walls, enemies, inventory):
-        super().__init__(screen, background_image_path, npcs, doors, walls, enemies)
+    def __init__(self, screen, background_image_path, npcs, doors_faculty , walls_faculty, enemies, inventory):
+        super().__init__(screen, background_image_path, npcs,doors_faculty , walls_faculty, enemies)
         self.inventory = inventory
 
     def update(self, event):
@@ -92,9 +79,9 @@ class FacultyLocation(Auditorium):
         self.inventory.draw()
         game.character.draw()
 
-class stairLocation(Auditorium):
-    def __init__(self, screen, background_image_path, npcs, doors, walls, enemies, inventory):
-        super().__init__(screen, background_image_path, npcs, doors, walls, enemies)
+class StairLocation(Auditorium):
+    def __init__(self, screen, background_image_path, npcs, doors_stair, walls_faculty, enemies, inventory):
+        super().__init__(screen, background_image_path, npcs, doors_stair, walls_faculty, enemies)
         self.inventory = inventory
 
     def update(self, event):
@@ -110,55 +97,17 @@ class stairLocation(Auditorium):
         self.inventory.draw()
         game.character.draw()
 
-class iuLocation(Auditorium):
-    def __init__(self, screen, background_image_path, npcs, doors, walls, enemies, inventory):
-        super().__init__(screen, background_image_path, npcs, doors, walls, enemies)
-        self.inventory = inventory
-
-    def update(self, event):
-        super().update(event)
-        for enemy in self.enemies:
-            enemy.update(game.character.get_position())
-
-            if enemy.check_collision(game.character.get_position(), 50):
-                self.inventory.reduce_health(5)
-
-    def draw(self):
-        super().draw()
-        self.inventory.draw()
-        game.character.draw()
-
-class finalLocation(Auditorium):
-    def __init__(self, screen, background_image_path, npcs, doors, walls, enemies, inventory):
-        super().__init__(screen, background_image_path, npcs, doors, walls, enemies)
-        self.inventory = inventory
-
-    def update(self, event):
-        super().update(event)
-        for enemy in self.enemies:
-            enemy.update(game.character.get_position())
-
-            if enemy.check_collision(game.character.get_position(), 50):
-                self.inventory.reduce_health(5)
-
-    def draw(self):
-        super().draw()
-        self.inventory.draw()
-        game.character.draw()
-
-security_location = SecurityLocation(screen, "auditorium_background.png", [Security], [DoorGameToFaculty], walls_security[:4], enemies, inventory)
-faculty_location = FacultyLocation(screen, "faculty.webp", [Varvara], [DoorFacultytoStair,DoorStairtoIU], walls[:3], enemies, inventory)
-stair = stairLocation(screen, "stair.webp", [Gopnik], [DoorStairtoIU], walls[:3], enemies, inventory)
-IU = iuLocation(screen, "iu404.png", [KA], [DoorIUtoFinal], walls[:3], enemies, inventory)
-final = finalLocation(screen, "Final.png", [KA], [DoorIUtoFinal], walls[:3], enemies, inventory)
+security_location = SecurityLocation(screen, "auditorium_background.png", [Security], doors_security, walls_security[:4], enemies, inventory)
+faculty_location = FacultyLocation(screen, "faculty.webp", [Varvara], doors_faculty, walls_faculty[:3], enemies, inventory)
+stair_location = StairLocation(screen, "stair.webp", [Varvara], doors_stair, walls_faculty[:3], enemies, inventory)
 
 auditoriums = {
     "game": security_location,
     "faculty": faculty_location,
-    "stair": stair,
-    "iu404": IU,
-    "final": final
+    "stair": stair_location
 }
+
+
 
 while True:
     for event in pygame.event.get():
@@ -198,62 +147,35 @@ while True:
                         combat_system.attack_closest_enemy()
                 for door in doors:
                     if door.rect.colliderect(game.character._rect):
-                        new_scene = door.interact(game.character._rect, current_scene)
-                        if new_scene:
-                            current_scene = new_scene
-                            print(f"Переход в сцену {current_scene}")
+                        if not door.is_locked:
+                            game.update_scene(door.to_scene)
+                            current_scene = door.to_scene
                         else:
-                            print("Дверь не может быть использована с этой локации или она закрыта.")
+                            print("Проход в слующую локацию закрыт, поговрите сначала с NPC!")
 
     if current_scene == "game" and game:
+        enemy_spawner.reset_spawn()
         auditoriums[current_scene].draw()
         game.update()
 
         if Security.enemies_active:
             Security.update_enemies(game.character.get_position())
 
-    elif current_scene == "faculty":
+    elif current_scene == "faculty" or current_scene == "stair":
         enemy_spawner.reset_spawn()
         auditoriums[current_scene].draw()
         game.update()
-
-    elif current_scene == "stair":
-        enemy_spawner.reset_spawn()
-        auditoriums[current_scene].draw()
-        game.update()
-        Gopnik.update_enemies(game.character.get_position())
-        Gopnik.draw_enemies()
-
-    elif current_scene == "iu404":
-        enemy_spawner.reset_spawn()
-        auditoriums[current_scene].draw()
-        game.update()
-
-        if KA.enemies_active:
-            KA.update_enemies(game.character.get_position())
-    elif current_scene == "final":
-        auditoriums[current_scene].draw()
-
 
     screen.fill(WHITE)
 
     if current_scene == "menu":
         menu.draw()
-
     elif current_scene == "game" and game:
         auditoriums[current_scene].draw()
         game.update()
-
     elif current_scene == "faculty" or current_scene == "stair":
         auditoriums[current_scene].draw()
         game.update()
-    elif current_scene == "iu404":
-        auditoriums[current_scene].draw()
-        game.update()
-    elif current_scene == "final":
-        auditoriums[current_scene].draw()
-        game.update()
-
     elif current_scene == "esc" :
         esc_menu.draw()
 

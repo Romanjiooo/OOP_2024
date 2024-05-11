@@ -1,8 +1,6 @@
 import pygame
 import sys
 import random
-import win32gui
-import win32con
 
 SCREEN_WIDTH, SCREEN_HEIGHT = 800, 600
 FPS = 60
@@ -10,6 +8,7 @@ WHITE = (255, 255, 255)
 GREEN = (0, 255, 0)
 RED = (255, 0, 0)
 GREY = (128,128,128)
+
 class BaseMenu:
     def __init__(self, screen, options):
         self.screen = screen
@@ -364,20 +363,11 @@ class Door(GameObject):
         print("Дверь открыта!")
         self.is_locked = False
 
-    def lock(self):
-        print("Дверь закрыта!")
-        self.is_locked = True
-
-    def interact(self, character_rect, current_scene):
-        if self.rect.colliderect(character_rect) and not self.is_locked and self.from_scene == current_scene:
-            print(f"Переход из {self.from_scene} в {self.to_scene}")
+    def interact(self, character_rect):
+        if self.rect.colliderect(character_rect) and not self.is_locked:
             return self.to_scene
         elif self.is_locked:
             print("Дверь закрыта, поговорите сначала с NPC!")
-        else:
-            print("Дверь не активна из текущей локации!")
-            return None
-
 
 class Wall:
     def __init__(self, x, y, width, height):
@@ -424,48 +414,6 @@ class Auditorium:
                     return door.to_scene
         return None
 
-pygame.init()
-screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-clock = pygame.time.Clock()
-
-hwnd = pygame.display.get_wm_info()["window"]
-win32gui.SetWindowPos(hwnd, win32con.HWND_TOPMOST, 600, 250, 800, 600, 0)
-
-menu = Menu(screen, "start.png")
-game = Game(screen)
-esc_menu = EscMenu(screen, game)
-inventory = Health(screen)
-current_scene = "menu"
-previous_scene = None
-
-enemy_spawner = EnemySpawner(screen, "enemy_icon.png", 5)
-character = Character(screen, "character_image.png", [50,50])
-
-combat_system = Combat(character, enemy_spawner.enemies, game)
-enemies = enemy_spawner.enemies
-
-walls_security = [
-    Wall(-10, 0, 800, -1),  # левая
-    Wall(-1, 1, -1, 600),  # верхняя
-    Wall(800, -1, 800, 600),  # правая
-    Wall(-1, 600, 800, -2),  # нижняя
-    Wall(50, 0, 800, 120)
-]
-
-walls_faculty = [
-    Wall(-10, 0, 800, -1),
-    Wall(-1, 1, -1, 600),
-    Wall(800, -1, 800, 600),
-]
-
-walls = [
-    Wall(-10, 0, 800, -1), #левая
-    Wall(-1, 1, -1, 600), #верхняя
-    Wall(800, -1, 800, 600), #правая
-    Wall(-1, 600, 800, -2), #нижняя
-    Wall(50,0, 800,120)
-]
-
 class SecurityNPC(NPC):
     def __init__(self, screen, image_path, position, door, enemy_spawner, inventory):
         dialogue_data = {
@@ -509,6 +457,57 @@ class SecurityNPC(NPC):
 
 class VarvaraNPC(NPC):
     def __init__(self, screen, image_path, position, door, enemy_spawner, inventory):
+        self.quiz_questions = [
+            ("Как в Python выводится число на экран?", ["print(число)", "echo(число)", "display(число)", "show(число)"], 0),
+            ("Как создается экземпляр класса?", ["Класс()", "new Класс()", "class Класс()", "Класс.new()"], 0),
+            ("Какой метод для добавления элемента в список?", ["append()", "add()", "push()", "put()"], 0),
+            ("Какой метод вызывается при создании объекта класса?", ["__init__()", "__new__()", "__start__()", "__create__()"], 0),
+            ("Какая функция измеряет длину списка?", ["len()", "count()", "length()", "size()"], 0),
+            ("Чем класс отличается от объекта?",
+             ["Класс - это шаблон для создания объектов", "Объект - это просто для красоты",
+              "Класс это когда очень нужно, а объект это когда очень хочется",
+              "Объект - это вообще-то функция, ну типа..."], 0),
+
+            ("Что такое инкапсуляция в ООП?",
+             ["Скрытие внутренних деталей реализации класса", "Инкапсуляция? Это когда в капсулу запихиваем",
+              "Тайный клуб, куда не все могут зайти", "Это когда все в одном флаконе, как шампунь 2 в 1"], 0),
+
+            ("Что такое наследование в ООП?",
+             ["Классы могут наследовать свойства и методы других классов",
+              "Наследование? Это когда дедушка оставил тебе в наследство класс",
+              "Это когда ты похож на маму или папу, но в коде", "Когда твой код богат и знатен"], 0),
+
+            ("Что такое полиморфизм в ООП?",
+             ["Объекты могут принимать множество форм", "Полиморфизм - это когда ты одновременно и кофе, и чай",
+              "Это вид магии, не так ли?", "Когда код мутирует и начинает жить своей жизнью"], 0),
+
+            ("Что такое абстракция в ООП?",
+             ["Сокрытие сложности, оставляя только релевантные детали", "Абстракция это когда очень абстрактно всё",
+              "Это когда всё зависит от контекста", "Ну это как искусство, каждый видит что хочет"], 0),
+
+            ("Как в Python создать анонимную функцию?",
+             ["lambda x: x * x", "def функция: создаём нечто анонимное", "function(x): x * x, секретное агентство",
+              "func x: x * x, шпионские страсти"], 0),
+
+            ("Что такое декоратор в Python?",
+             ["Функция, которая модифицирует другую функцию", "Способ стилизации кода, как в доме твоей бабушки",
+              "Инструмент для написания декларативного Python кода, очень секретный",
+              "Модуль Python, который наводит ужас на другие модули"], 0),
+
+            ("Какая функция в Python проверяет принадлежность элемента к списку?",
+             ["x in list", "x belongs to list, почти как в клубе", "list.contains(x), список знает всё",
+              "find(x in list), ищем пока не найдем"], 0),
+
+            ("Как в Python проверить, является ли число четным?",
+             ["x % 2 == 0", "x делится на 2 без остатка, как пирог на дне рождения", "even(x), спроси у Python",
+              "x // 2, деление как искусство"], 0),
+
+            ("Какой метод в Python используется для вывода данных на экран?",
+             ["print()", "show()", "display()", "echo(), это не только в горах"], 0)
+        ]
+        self.current_question_index = 0
+        self.total_questions = len(self.quiz_questions)
+
         dialogue_data = {
             "start": ("Поздравляю с поступлением на ИУ-10. Тебя ждёт тяжелое испытание длиной в 6 курсов.",
                       (["Я готов к этому.", "Да ну, опять учиться…"],
@@ -525,198 +524,96 @@ class VarvaraNPC(NPC):
         self.enemies_active = False
         self.enemy_spawner = enemy_spawner
         self.inventory = inventory
+        self.quiz_answers = []
 
     def hand_over_schedule(self):
         print("(вслух) А где это?")
         print("(в мыслях) Похоже, придётся искать самому.")
-        self.door.unlock()  # Открывает дверь, если это часть логики
-        self.disappear()  # Метод, отвечающий за "исчезновение" Варвары
+        self.door.unlock()
+        self.ask_next_question()
+
+    def ask_next_question(self):
+        if self.current_question_index < self.total_questions:
+            question, options, correct_index = self.quiz_questions[self.current_question_index]
+            self.display_question(question, options, correct_index)
+        else:
+            self.show_quiz_results()
+
+    def display_question(self, question, options, correct_index):
+        print(question)
+        for idx, option in enumerate(options):
+            print(f"{idx + 1}. {option}")
+        self.get_player_response(correct_index)
+
+    def get_player_response(self, correct_index):
+        try:
+            choice = int(input("Выбери ответ (напиши цифру/число): ")) - 1
+            is_correct = choice == correct_index
+            self.quiz_answers.append(is_correct)
+            self.current_question_index += 1
+            self.ask_next_question()
+        except ValueError:
+            print("Неверный ввод. Пожалуйста, введите число.")
+            self.display_question(*self.quiz_questions[self.current_question_index])
+
+    def show_quiz_results(self):
+        correct_answers = sum(self.quiz_answers)
+        print(f"Вот и все вопросы. Ты ответил правильно на {correct_answers} из {self.total_questions}.")
+        self.disappear()
 
     def disappear(self):
-        # Логика, которая делает NPC невидимым или удаляет его из активных объектов
         print("Варвара Александровна ушла за синюю дверь.")
-        self.visible = False  # Предполагая, что есть свойство видимости
-
+        self.visible = False
 
     def unlock_door(self):
         if self.door:
             self.door.unlock()
             print("Проход в новую локацию открыт!")
 
-class ExitDoor(Door):
-    def interact(self, character_rect, current_scene):
-        return super().interact(character_rect, current_scene)
-
 class SecurityDoor(Door):
-    def interact(self, character_rect, current_scene):
-        return super().interact(character_rect, current_scene)
+    def __init__(self, screen, image_path, position, from_scene, to_scene):
+        super().__init__(screen, image_path, position, from_scene, to_scene, scale=(100, 200))
+
+    def unlock(self):
+        super().unlock()
+        print("Проход в новую локацию открыт!")
+
+class ExitDoor(Door):
+    def __init__(self, screen, image_path, position, from_scene, to_scene):
+        super().__init__(screen, image_path, position, from_scene, to_scene, scale=(100, 50))
+        self.is_locked = False
+
+    def interact(self, character_rect):
+        if self.rect.colliderect(character_rect):
+            print("Exiting the game scene.")
+            return self.to_scene
 
 class StairDoor(Door):
-    def interact(self, character_rect, current_scene):
-        return super().interact(character_rect, current_scene)
+    def __init__(self, screen, image_path, position, from_scene, to_scene):
+        super().__init__(screen, image_path, position, from_scene, to_scene, scale=(100, 50))
 
-DoorGameToFaculty = SecurityDoor(screen, "SecurityDoor.png", (450, 100), "game", "faculty")
-DoorFacultytoGame = ExitDoor(screen, "door_image.png", (300, 200), "faculty", "game")
-DoorFacultytoStair = StairDoor(screen, "door_image.png", (350, 250), "faculty", "stair")
+    def unlock(self):
+        super().unlock()
+        print("Проход в новую локацию открыт!")
 
-
-doors = [
-DoorGameToFaculty,
-DoorFacultytoGame,
-DoorFacultytoStair
+walls_security = [
+    Wall(-10, 0, 800, -1),  # левая
+    Wall(-1, 1, -1, 600),  # верхняя
+    Wall(800, -1, 800, 600),  # правая
+    Wall(-1, 600, 800, -2),  # нижняя
+    Wall(50, 0, 800, 120)
 ]
 
-Security = SecurityNPC(screen, "security.png", (400, 150), DoorGameToFaculty, enemy_spawner, inventory)
-Varvara = VarvaraNPC(screen, "npc_image.png", (200, 200), DoorFacultytoGame, enemy_spawner, inventory)
-Varvara2 = VarvaraNPC(screen, "npc_image.png", (250, 250), DoorFacultytoStair, enemy_spawner, inventory)
-
-
-npcs = [
-    Security,
-    Varvara,
-    Varvara2
+walls_faculty = [
+    Wall(-10, 0, 800, -1),  # левая
+    Wall(-1, 1, -1, 600),  # верхняя
+    Wall(800, -1, 800, 600),  # правая
+    Wall(-1, 600, 800, -2),  # нижняя
 ]
 
-class SecurityLocation(Auditorium):
-    def __init__(self, screen, background_image_path, npcs, doors, walls_security, enemies, inventory):
-        super().__init__(screen, background_image_path, npcs, doors, walls_security, enemies)
-        self.inventory = inventory
-
-    def update(self, event):
-        super().update(event)
-        for enemy in self.enemies:
-            enemy.update(game.character.get_position())
-
-            if enemy.check_collision(game.character.get_position(), 50):
-                self.inventory.reduce_health(5)
-
-    def draw(self):
-        super().draw()
-        self.inventory.draw()
-        game.character.draw()
-
-class FacultyLocation(Auditorium):
-    def __init__(self, screen, background_image_path, npcs, doors, walls, enemies, inventory):
-        super().__init__(screen, background_image_path, npcs, doors, walls, enemies)
-        self.inventory = inventory
-
-    def update(self, event):
-        super().update(event)
-        for enemy in self.enemies:
-            enemy.update(game.character.get_position())
-
-            if enemy.check_collision(game.character.get_position(), 50):
-                self.inventory.reduce_health(5)
-
-    def draw(self):
-        super().draw()
-        self.inventory.draw()
-        game.character.draw()
-
-class stairLocation(Auditorium):
-    def __init__(self, screen, background_image_path, npcs, doors, walls, enemies, inventory):
-        super().__init__(screen, background_image_path, npcs, doors, walls, enemies)
-        self.inventory = inventory
-
-    def update(self, event):
-        super().update(event)
-        for enemy in self.enemies:
-            enemy.update(game.character.get_position())
-
-            if enemy.check_collision(game.character.get_position(), 50):
-                self.inventory.reduce_health(5)
-
-    def draw(self):
-        super().draw()
-        self.inventory.draw()
-        game.character.draw()
-
-security_location = SecurityLocation(screen, "auditorium_background.png", [Security], [DoorGameToFaculty], walls_security[:4], enemies, inventory)
-faculty_location = FacultyLocation(screen, "auditorium_background.png", [Varvara,Varvara2], [DoorFacultytoGame, DoorFacultytoStair], walls[:3], enemies, inventory)
-stair = stairLocation(screen, "auditorium_background.png", [Varvara], [DoorFacultytoStair], walls[:3], enemies, inventory)
-
-auditoriums = {
-    "game": security_location,
-    "faculty": faculty_location,
-    "stair": stair
-}
-
-while True:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            pygame.quit()
-            sys.exit()
-
-        if current_scene == "menu":
-            result = menu.update(event)
-            if result == "start":
-                game = Game(screen)
-                enemy_spawner.reset_spawn()
-                current_scene = "game"
-            elif result == "quit":
-                pygame.quit()
-                sys.exit()
-
-        elif current_scene == "esc":
-            result = esc_menu.update(event)
-            if result == "cancel":
-                current_scene = previous_scene
-            elif result is None:
-                continue
-
-        elif game:
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
-                    previous_scene = current_scene
-                    esc_menu.activate()
-                    current_scene = "esc"
-                if event.key == pygame.K_SPACE:
-                    for npc in npcs:
-                        if npc.rect.collidepoint(game.character._position):
-                            npc.interact()
-                if event.key == pygame.K_a:
-                    if enemy_spawner.enemies:
-                        combat_system.attack_closest_enemy()
-                for door in doors:
-                    if door.rect.colliderect(game.character._rect):
-                        new_scene = door.interact(game.character._rect, current_scene)
-                        if new_scene:
-                            current_scene = new_scene
-                            print(f"Переход в сцену {current_scene}")
-                        else:
-                            print("Дверь не может быть использована с этой локации или она закрыта.")
-
-    if current_scene == "game" and game:
-        enemy_spawner.reset_spawn()
-        auditoriums[current_scene].draw()
-        game.update()
-
-        if Security.enemies_active:
-            Security.update_enemies(game.character.get_position())
-
-    elif current_scene == "faculty":
-        enemy_spawner.reset_spawn()
-        auditoriums[current_scene].draw()
-        game.update()
-    elif current_scene == "stair":
-        auditoriums[current_scene].draw()
-        game.update()
-
-    screen.fill(WHITE)
-
-    if current_scene == "menu":
-        menu.draw()
-
-    elif current_scene == "game" and game:
-        auditoriums[current_scene].draw()
-        game.update()
-
-    elif current_scene == "faculty" or current_scene == "stair":
-        auditoriums[current_scene].draw()
-        game.update()
-
-    elif current_scene == "esc" :
-        esc_menu.draw()
-
-    pygame.display.flip()
-    clock.tick(FPS)
+walls = [
+    Wall(-10, 0, 800, -1), #левая
+    Wall(-1, 1, -1, 600), #верхняя
+    Wall(800, -1, 800, 600), #правая
+    Wall(-1, 600, 800, -2), #нижняя
+]
