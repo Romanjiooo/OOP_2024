@@ -12,6 +12,13 @@ RED = (255, 0, 0)
 GREY = (128,128,128)
 
 class BaseMenu:
+    '''
+        Класс BaseMenu для создания меню в игре.
+        Включает методы для инциализации объекта BaseMenu с :
+        - __init__(self, screen, options): Инициализирует объект BaseMenu с экраном и списком опций.
+        - draw(self): Отрисовывает опции меню на экране, выделяя текущую выбранную опцию.
+        - update(self, event): Обрабатывает нажатия клавиш для изменения выбранной опции и подтверждения выбора.
+    '''
     def __init__(self, screen, options):
         self.screen = screen
         self.font = pygame.font.Font(None, 48)
@@ -22,8 +29,8 @@ class BaseMenu:
         for index, option in enumerate(self.options):
             color = GREEN if index == self.selected_index else RED
             label = self.font.render(option, True, color)
-            x = SCREEN_WIDTH // 2 - label.get_width() // 2
-            y = SCREEN_HEIGHT // 2 - label.get_height() // 2 + 50 * index
+            x = 400 - label.get_width() // 2
+            y = 300 - label.get_height() // 2 + 50 * index
             self.screen.blit(label, (x, y))
 
     def update(self, event):
@@ -38,42 +45,40 @@ class BaseMenu:
 
 class Menu(BaseMenu):
     def __init__(self, screen, background_image_path):
-        super().__init__(screen, ["Start Game", "Quit"])
-        # Загрузка и масштабирование фонового изображения
+        super().__init__(screen, ["№;^&*(%()", "Числануться"])
         self.background_image = pygame.image.load(background_image_path)
 
     def draw(self):
-        # Отрисовка фонового изображения вместо заливки цветом
         self.screen.blit(self.background_image, (0, 0))
         super().draw()
 
     def update(self, event):
         result = super().update(event)
-        if result == "Start Game":
+        if result == "№;^&*(%()":
             return "start"
-        elif result == "Quit":
+        elif result == "Числануться":
             pygame.quit()
             sys.exit()
         return None
 
 class EscMenu(BaseMenu):
     def __init__(self, screen, game):
-        super().__init__(screen, ["Quit", "Cancel"])
+        super().__init__(screen, ["Академ", "Вернуться"])
         self.game = game
         self.active = False
 
     def draw(self):
         if self.active:
-            self.screen.fill((0, 0, 0, 128))  # Полупрозрачный фон
+            self.screen.fill((0, 0, 0, 128))
             super().draw()
 
     def update(self, event):
         if self.active:
             result = super().update(event)
-            if result == "Quit":
+            if result == "Академ":
                 pygame.quit()
                 sys.exit()
-            elif result == "Cancel":
+            elif result == "Вернуться":
                 self.active = False
                 return "cancel"
         return None
