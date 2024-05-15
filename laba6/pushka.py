@@ -152,7 +152,7 @@ def new_game(event=''):
         # canv.bind('<ButtonRelease-1>','')
         canv.itemconfig(screen1,text='Вы уничтожили одну из целей за '+str(bullet)+' выстрелов')
 
-# print(t1.live, t2.live)
+# print(t1.live, t2.live)1
     if not t1.live and not t2.live:
       canv.bind('<Button-1>','')
       canv.bind('<ButtonRelease-1>','')
