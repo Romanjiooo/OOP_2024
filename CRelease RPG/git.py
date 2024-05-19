@@ -57,8 +57,8 @@ npcs = [
 ]
 
 class SecurityLocation(Auditorium):
-    def __init__(self, screen, background_image_path, npcs, doors, walls_security, enemies, inventory):
-        super().__init__(screen, background_image_path, npcs, doors, walls_security, enemies)
+    def __init__(self, screen, background_image_path, npcs, doors, walls, enemies, inventory):
+        super().__init__(screen, background_image_path, npcs, doors, walls, enemies)
         self.inventory = inventory
 
     def update(self, event):
@@ -146,7 +146,7 @@ class finalLocation(Auditorium):
         self.inventory.draw()
         game.character.draw()
 
-security_location = SecurityLocation(screen, "auditorium_background.png", [Security], [DoorGameToFaculty], walls_security[:4], enemies, inventory)
+security_location = SecurityLocation(screen, "auditorium_background.png", [Security], [DoorGameToFaculty], walls[:4], enemies, inventory)
 faculty_location = FacultyLocation(screen, "faculty.webp", [Varvara], [DoorFacultytoStair,DoorStairtoIU], walls[:3], enemies, inventory)
 stair = stairLocation(screen, "stair.webp", [Gopnik], [DoorStairtoIU], walls[:3], enemies, inventory)
 IU = iuLocation(screen, "iu404.png", [KA], [DoorIUtoFinal], walls[:3], enemies, inventory)

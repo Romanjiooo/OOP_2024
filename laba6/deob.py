@@ -710,9 +710,7 @@ class GameState:
         self.active_gun = choice(GUN_TYPES)(screen, self.balls)
         self.guns = [choice(GUN_TYPES)(screen, self.balls) for i in range(2)]
         for i in self.guns:
-            x = rnd(
-                0,
-                GameSettings.SCREEN_SIZE[0] / 2)
+            x = rnd(0,GameSettings.SCREEN_SIZE[0] // 2)
             y = rnd(
                 GameSettings.SCREEN_SIZE[1]//2,
                 GameSettings.SCREEN_SIZE[1] - 15)

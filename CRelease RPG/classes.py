@@ -1,8 +1,6 @@
 import pygame
 import sys
 import random
-import win32gui
-import win32con
 
 SCREEN_WIDTH, SCREEN_HEIGHT = 800, 600
 FPS = 60
@@ -21,7 +19,7 @@ class BaseMenu:
     '''
     def __init__(self, screen, options):
         self.screen = screen
-        self.font = pygame.font.Font(None, 48)
+        self.font = pygame.font.Font("minecraft.ttf", 48)  # Попытка загрузки пользовательского шрифта
         self.options = options
         self.selected_index = 0
 
@@ -92,12 +90,10 @@ class Game:
         self.character = Character(screen, "character_image.png", [50, 450])
         self.background = pygame.transform.scale(pygame.image.load("auditorium_background.png"), (SCREEN_WIDTH, SCREEN_HEIGHT))
         self.current_scene = "initial_scene"
-        self.damage_boost = 0
 
     def update_scene(self, new_scene):
         if new_scene != self.current_scene:
             self.current_scene = new_scene
-            self.damage_boost += 10
 
     def draw(self):
         self.screen.blit(self.background, (0, 0))
@@ -210,8 +206,7 @@ class Combat:
     def attack_closest_enemy(self):
         enemy = self.find_closest_enemy()
         if enemy:
-            base_damage = 50
-            total_damage = base_damage + self.game.damage_boost
+            total_damage = 50
             enemy.health -= total_damage
             print(f"Attacked {enemy.name} for {total_damage} damage!")
             if enemy.health <= 0:
@@ -701,20 +696,6 @@ class StairDoor(Door):
     def interact(self, character_rect, current_scene):
         return super().interact(character_rect, current_scene)
 
-walls_security = [
-    Wall(-10, 0, 800, -1),  # левая
-    Wall(-1, 1, -1, 600),  # верхняя
-    Wall(800, -1, 800, 600),  # правая
-    Wall(-1, 600, 800, -2),  # нижняя
-    Wall(50, 0, 800, 120)
-]
-
-walls_faculty = [
-    Wall(-10, 0, 800, -1),
-    Wall(-1, 1, -1, 600),
-    Wall(800, -1, 800, 600),
-]
-
 walls = [
     Wall(-10, 0, 800, -1), #левая
     Wall(-1, 1, -1, 600), #верхняя
@@ -722,4 +703,3 @@ walls = [
     Wall(-1, 600, 800, -2), #нижняя
     Wall(50,0, 800,120)
 ]
-
