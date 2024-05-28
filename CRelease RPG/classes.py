@@ -548,13 +548,13 @@ class SecurityNPC(NPC):
     def __init__(self, screen, image_path, position, door, enemy_spawner, inventory):
         dialogue_data = {
             "start": ("Привет, первокур! Что тебе нужно?",
-                      (["Cпросить как пройти к аудитории.", "Сказать 'Пошёл ты'."],
+                      (["Спросить как пройти к аудитории.", "Сказать 'Пошёл ты'."],
                        [lambda: self.dialogue.display_conversation("quest"), lambda: self.dialogue.display_conversation("goodbye")])),
             "quest": ("Пройди через зал и победи всех нарушителей, затем я открою дверь.",
                       (["Принять вызов.", "Отказаться."],
-                       [lambda: self.dialogue.display_conversation("accept"), lambda: self.dialogue.display_conversation("decline")])),
+                       [lambda: self.accept_challenge(), lambda: self.dialogue.display_conversation("decline")])),
             "goodbye": ("Чао какао.", ([], [])),
-            "accept": ("Удачи в битве!", ([], [lambda: self.activate_enemies()])),
+            "accept": ("Удачи в битве!", ([], [])),
             "decline": ("Ну и ладно, сторонись от меня.", ([], []))
         }
         super().__init__(screen, image_path, position, dialogue_data, door)
@@ -562,6 +562,11 @@ class SecurityNPC(NPC):
         self.enemies_active = False
         self.enemy_spawner = enemy_spawner
         self.inventory = inventory
+
+    def accept_challenge(self):
+        self.dialogue.display_conversation("accept")
+        # Здесь мы вызываем функцию активации после завершения диалога
+        self.activate_enemies()
 
     def activate_enemies(self):
         print("Activating enemies...")
@@ -601,51 +606,37 @@ class VarvaraNPC(NPC):
     def __init__(self, screen, image_path, position, door, enemy_spawner, inventory):
         self.quiz_questions = [
             ("Как в Python выводится число на экран?", ["print(число)", "echo(число)", "display(число)", "show(число)"], 0),
-            ("Как создается экземпляр класса?", ["Класс()", "new Класс()", "class Класс()", "Класс.new()"], 0),
-            ("Какой метод для добавления элемента в список?", ["append()", "add()", "push()", "put()"], 0),
+            ("Как создается экземпляр класса?", ["Класс()", "new Класс()", "class Класс()", "Класс.new()"], 2),
+            ("Какой метод для добавления элемента в список?", ["append()", "add()", "push()", "append()"], 3),
             ("Какой метод вызывается при создании объекта класса?", ["__init__()", "__new__()", "__start__()", "__create__()"], 0),
-            ("Какая функция измеряет длину списка?", ["len()", "count()", "length()", "size()"], 0),
+            ("Какая функция измеряет длину списка?", ["lena()", "count()", "length()", "len()"], 0),
             ("Чем класс отличается от объекта?",
-             ["Класс - это шаблон для создания объектов", "Объект - это просто для красоты",
-              "Класс это когда очень нужно, а объект это когда очень хочется",
+             ["Класс - это шаблон для создания объектов", "Это одно и то же",
+              "Объект это когда =, а класс когда class name():",
               "Объект - это вообще-то функция, ну типа..."], 0),
 
             ("Что такое инкапсуляция в ООП?",
-             ["Скрытие внутренних деталей реализации класса", "Инкапсуляция? Это когда в капсулу запихиваем",
-              "Тайный клуб, куда не все могут зайти", "Это когда все в одном флаконе, как шампунь 2 в 1"], 0),
+             ["Скрытие внутренних деталей реализации класса", "Это не относится к ООП, это лекарство",
+              "Это когда код типа в капсуле", "Я не знаю, help"], 0),
 
             ("Что такое наследование в ООП?",
              ["Классы могут наследовать свойства и методы других классов",
-              "Наследование? Это когда дедушка оставил тебе в наследство класс",
-              "Это когда ты похож на маму или папу, но в коде", "Когда твой код богат и знатен"], 0),
+              "Ну когда один и другой типа похожи",
+              "Когда объекты наследуют свойства классов", "Это очень интересная парадигма, которая ставит вопрос о правильной сущности бытия..."], 0),
 
             ("Что такое полиморфизм в ООП?",
-             ["Объекты могут принимать множество форм", "Полиморфизм - это когда ты одновременно и кофе, и чай",
-              "Это вид магии, не так ли?", "Когда код мутирует и начинает жить своей жизнью"], 0),
+             ["Полиморфизм позволяет использовать разные реализации.", "Это когда много форм",
+              "Это вид магии?", "Когда код мутирует"], 0),
 
             ("Что такое абстракция в ООП?",
              ["Сокрытие сложности, оставляя только релевантные детали", "Абстракция это когда очень абстрактно всё",
               "Это когда всё зависит от контекста", "Ну это как искусство, каждый видит что хочет"], 0),
 
             ("Как в Python создать анонимную функцию?",
-             ["lambda x: x * x", "def функция: создаём нечто анонимное", "function(x): x * x, секретное агентство",
-              "func x: x * x, шпионские страсти"], 0),
+             ["lambda x: x * x", "def функция: создаём нечто анонимное", "function(x): x * x",
+              "func x: x * x"], 0),
 
-            ("Что такое декоратор в Python?",
-             ["Функция, которая модифицирует другую функцию", "Способ стилизации кода, как в доме твоей бабушки",
-              "Инструмент для написания декларативного Python кода, очень секретный",
-              "Модуль Python, который наводит ужас на другие модули"], 0),
 
-            ("Какая функция в Python проверяет принадлежность элемента к списку?",
-             ["x in list", "x belongs to list, почти как в клубе", "list.contains(x), список знает всё",
-              "find(x in list), ищем пока не найдем"], 0),
-
-            ("Как в Python проверить, является ли число четным?",
-             ["x % 2 == 0", "x делится на 2 без остатка, как пирог на дне рождения", "even(x), спроси у Python",
-              "x // 2, деление как искусство"], 0),
-
-            ("Какой метод в Python используется для вывода данных на экран?",
-             ["print()", "show()", "display()", "echo(), это не только в горах"], 0)
         ]
         self.current_question_index = 0
         self.total_questions = len(self.quiz_questions)
@@ -654,11 +645,11 @@ class VarvaraNPC(NPC):
             "start": ("Поздравляю с поступлением на ИУ-10. Тебя ждёт тяжелое испытание длиной в 6 курсов.",
                       (["Я готов к этому.", "Да ну, опять учиться…"],
                        [lambda: self.dialogue.display_conversation("ready"), lambda: self.dialogue.display_conversation("reluctant")])),
-            "ready": ("Молодец! Вот твоё расписание, иди и покоряй вершины знаний!",
+            "ready": ("Молодец! Вот твоё расписание, иди и покоряй вершины знаний! Но перед этим ответь на вопросы.",
                       ([], [lambda: self.hand_over_schedule()])),
-            "reluctant": ("Ты справишься! Вот твоё расписание, не забудь про первую пару в 503.",
+            "reluctant": ("Ты справишься! Вот твоё расписание, не забудь про первую пару в 501ю. Но перед этим ответь на прочку вопросов.",
                           ([], [lambda: self.hand_over_schedule()])),
-            "hand_over_schedule": ("(в мыслях) 1 пара ЯП, 503 кабинет...",
+            "hand_over_schedule": ("(в мыслях) 1 парой опставили... 501ю 501ю 501ю 501ю 501ю кабинет...",
                                    ([], []))
         }
         super().__init__(screen, image_path, position, dialogue_data, door)
@@ -794,17 +785,23 @@ class KANPC(NPC):
     '''
     def __init__(self, screen, image_path, position, door, enemy_spawner, inventory):
         dialogue_data = {
-            "start": ("Привет, первокур! Что тебе нужно?",
-                      (["Cпросить как пройти к аудитории.", "Сказать 'Пошёл ты'."],
-                       [lambda: self.dialogue.display_conversation("quest"),
-                        lambda: self.dialogue.display_conversation("goodbye")])),
-            "quest": ("Пройди через зал и победи всех нарушителей, затем я открою дверь.",
-                      (["Принять вызов.", "Отказаться."],
-                       [lambda: self.dialogue.display_conversation("accept"),
-                        lambda: self.dialogue.display_conversation("decline")])),
-            "goodbye": ("Чао какао.", ([], [])),
-            "accept": ("Удачи в битве!", ([], [lambda: self.activate_enemies()])),
-            "decline": ("Ну и ладно, сторонись от меня.", ([], []))
+            "start": ("Студент - вот мы и встретились! Где ты был на первой лабе? Надеюсь ты её сделал?",
+                      (["Лабу? Какую лабу?", "Сделал"],
+                       [lambda: self.dialogue.display_conversation("truth"),
+                        lambda: self.dialogue.display_conversation("lie")])),
+            "truth": ("Ты у нас кто?",
+                      (["Уася Орешин"],
+                       [lambda: self.dialogue.display_conversation("gorin")])),
+            "gorin": ("Ясно. *Смотрит почту*. Я ничего не вижу, у меня на почте два отчета с вашей группы.",
+                      ([], [lambda: self.unlock_door()])),
+            "lie": ("Что-то я не вижу отчёта у себя на электронной почте.  Если сможешь противостоять этим гопникам, так уж и быть поставлю 5.",
+                    (["Отчёты для слабых"],
+                     [lambda: self.dialogue.display_conversation("no_report")])),
+            "no_report": ("Ты скажи ещё, что не сделал блок схему?",
+                          (["Нет, но я могу предложить вам сделать подокон..."],
+                           [lambda: self.dialogue.display_conversation("no_block_scheme")])),
+            "no_block_scheme": ("Задайте жару этому строителю!",
+                                ([], [lambda: self.activate_enemies()])),
         }
         super().__init__(screen, image_path, position, dialogue_data, door)
         self.door = door
@@ -824,6 +821,9 @@ class KANPC(NPC):
             damage = self.enemy_spawner.check_collisions(character_position, 50)
             if damage:
                 self.inventory.reduce_health(damage)
+            if not self.enemy_spawner.enemies:
+                self.enemies_active = False
+                print("Не думал, что ты справишься! Заслуженный автомат!")
 
     def draw_enemies(self):
         if self.enemies_active:

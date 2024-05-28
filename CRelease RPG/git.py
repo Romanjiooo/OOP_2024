@@ -35,7 +35,7 @@ enemies = enemy_spawner.enemies
 DoorGameToFaculty = SecurityDoor(screen, "SecurityDoor.png", (450, 100), "game", "faculty")
 DoorFacultytoStair = StairDoor(screen, "DoorFacultytoStair.png", (100, 280), "faculty", "stair")
 DoorStairtoIU = StairDoor(screen, "exit.png", (700, 400), "stair", "iu404")
-DoorIUtoFinal = StairDoor(screen, "door_image.png", (600, 350), "iu404", "final")
+DoorIUtoFinal = StairDoor(screen, "exit.png", (600, 350), "iu404", "final")
 
 doors = [
 DoorGameToFaculty,
@@ -185,7 +185,7 @@ security_location = SecurityLocation(screen, "auditorium_background.png", [Secur
 faculty_location = FacultyLocation(screen, "faculty.webp", [Varvara], [DoorFacultytoStair,DoorStairtoIU], walls[:3], enemies, inventory)
 stair = stairLocation(screen, "stair.webp", [Gopnik], [DoorStairtoIU], walls[:3], enemies, inventory)
 IU = iuLocation(screen, "iu404.png", [KA], [DoorIUtoFinal], walls[:3], enemies, inventory)
-final = finalLocation(screen, "Final.png", [KA], [DoorIUtoFinal], walls[:3], enemies, inventory)
+final = finalLocation(screen, "Final.png", [], [DoorGameToFaculty], walls[:3], enemies, inventory)
 
 auditoriums = {
     "game": security_location,
