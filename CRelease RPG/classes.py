@@ -42,6 +42,13 @@ class BaseMenu:
         return None
 
 class Menu(BaseMenu):
+    '''
+    Класс Menu наследует BaseMenu для создания меню с фоновым изображением.
+    Включает методы для инициализации и отрисовки меню с фоновым изображением.
+    - __init__(self, screen, background_image_path): Инициализирует объект Menu с экраном и путем к фоновому изображению.
+    - draw(self): Отрисовывает фоновое изображение и опции меню на экране.
+    - update(self, event): Обрабатывает нажатия клавиш для изменения выбранной опции и подтверждения выбора.
+    '''
     def __init__(self, screen, background_image_path):
         super().__init__(screen, ["№;^&*(%()", "Числануться"])
         self.background_image = pygame.image.load(background_image_path)
@@ -60,6 +67,14 @@ class Menu(BaseMenu):
         return None
 
 class EscMenu(BaseMenu):
+    '''
+        Класс EscMenu наследует BaseMenu для создания меню паузы в игре.
+        Включает методы для активации, отрисовки и обновления меню паузы.
+        - __init__(self, screen, game): Инициализирует объект EscMenu с экраном и ссылкой на игровой объект.
+        - draw(self): Отрисовывает меню паузы на затемненном фоне.
+        - update(self, event): Обрабатывает нажатия клавиш для изменения выбранной опции и подтверждения выбора.
+        - activate(self): Активирует меню паузы.
+    '''
     def __init__(self, screen, game):
         super().__init__(screen, ["Академ", "Вернуться"])
         self.game = game
@@ -85,6 +100,14 @@ class EscMenu(BaseMenu):
         self.active = True
 
 class Game:
+    '''
+        Класс Game для управления основными элементами игры.
+        Включает методы для инициализации, обновления сцены, отрисовки и обновления игрового процесса.
+        - __init__(self, screen): Инициализирует объект Game с экраном и основными игровыми элементами.
+        - update_scene(self, new_scene): Обновляет текущую сцену игры.
+        - draw(self): Отрисовывает фон и персонажа на экране.
+        - update(self): Обрабатывает ввод с клавиатуры для перемещения персонажа и проверки столкновений.
+    '''
     def __init__(self, screen):
         self.screen = screen
         self.character = Character(screen, "character_image.png", [50, 450])
@@ -119,6 +142,13 @@ class Game:
             print("Нельзя пройти!")
 
 class GameObject:
+    '''
+        Класс GameObject для создания объектов игры с изображением.
+        Включает методы для инициализации, отрисовки и обновления объектов.
+        - __init__(self, screen, image_path, position, scale=(50, 100)): Инициализирует объект GameObject с экраном, путем к изображению, позицией и масштабом.
+        - draw(self): Отрисовывает объект на экране.
+        - update(self): Обновляет состояние объекта (пустой метод для переопределения).
+    '''
     def __init__(self, screen, image_path, position, scale=(50, 100)):
         self.screen = screen
         self.image = pygame.transform.scale(pygame.image.load(image_path), scale)
@@ -132,6 +162,15 @@ class GameObject:
         pass
 
 class Character:
+    '''
+        Класс Character для создания и управления персонажем игры.
+        Включает методы для инициализации, отрисовки, перемещения и получения позиции персонажа.
+        - __init__(self, screen, image_path, position): Инициализирует объект Character с экраном, путем к изображению и позицией.
+        - draw(self): Отрисовывает персонажа на экране.
+        - move(self, dx, dy): Перемещает персонажа на заданное расстояние.
+        - _set_position(self, x, y): Устанавливает новую позицию персонажа.
+        - get_position(self): Возвращает текущую позицию персонажа.
+    '''
     def __init__(self, screen, image_path, position):
         self._screen = screen
         self._image = pygame.transform.scale(pygame.image.load(image_path), (50, 100))
@@ -154,6 +193,14 @@ class Character:
 
 
 class Health:
+    '''
+        Класс Health для управления здоровьем персонажа и отображением здоровья на экране.
+        Включает методы для инициализации, отрисовки здоровья, уменьшения здоровья и сброса игры.
+        - __init__(self, screen): Инициализирует объект Health с экраном и начальным значением здоровья.
+        - draw(self): Отрисовывает индикатор здоровья и иконки предметов на экране.
+        - reduce_health(self, amount): Уменьшает здоровье на заданное количество и перезапускает игру, если здоровье равно нулю.
+        - reset_game(self): Перезапускает игру при окончании здоровья.
+    '''
     def __init__(self, screen):
         self.screen = screen
         self.font = pygame.font.Font(None, 24)
@@ -187,6 +234,13 @@ class Health:
 
 
 class Combat:
+    '''
+       Класс Combat для управления боями между персонажем и врагами.
+       Включает методы для поиска ближайшего врага и атаки ближайшего врага.
+       - __init__(self, character, enemies, game): Инициализирует объект Combat с персонажем, списком врагов и игрой.
+       - find_closest_enemy(self): Ищет ближайшего врага к персонажу.
+       - attack_closest_enemy(self): Атакует ближайшего врага и удаляет его из списка, если его здоровье становится нулевым.
+    '''
     def __init__(self, character, enemies, game):
         self.character = character
         self.enemies = enemies
@@ -215,6 +269,16 @@ class Combat:
 
 
 class EnemySpawner:
+    '''
+        Класс EnemySpawner для управления созданием врагов в игре.
+        Включает методы для создания, сброса, отрисовки и обновления врагов, а также проверки столкновений с врагами.
+        - __init__(self, screen, image_path, num_enemies): Инициализирует объект EnemySpawner с экраном, путем к изображению и количеством врагов.
+        - spawn_enemies(self): Создает врагов и добавляет их в список врагов.
+        - reset_spawn(self): Сбрасывает флаг создания врагов.
+        - draw_enemies(self): Отрисовывает всех врагов на экране.
+        - update_enemies(self, target_pos): Обновляет положение всех врагов в зависимости от позиции цели.
+        - check_collisions(self, target_pos, damage_range): Проверяет столкновения врагов с целью и возвращает общее количество урона.
+    '''
     def __init__(self, screen, image_path, num_enemies):
         self.screen = screen
         self.enemies = []
@@ -270,6 +334,14 @@ class EnemySpawner:
 
 
 class Enemy:
+    '''
+        Класс Enemy для создания врагов в игре.
+        Включает методы для инициализации, отрисовки, обновления положения и проверки столкновений врага.
+        - __init__(self, screen, image_path, start_pos, health=100): Инициализирует объект Enemy с экраном, путем к изображению, начальной позицией и здоровьем.
+        - draw(self): Отрисовывает врага на экране.
+        - update(self, target_pos): Обновляет положение врага в зависимости от позиции цели.
+        - check_collision(self, target_pos, damage_range): Проверяет столкновение врага с целью и возвращает True, если произошло столкновение.
+    '''
     def __init__(self, screen, image_path, start_pos, health=100):
         self.screen = screen
         self.image = pygame.transform.scale(pygame.image.load(image_path), (50, 100))
@@ -298,6 +370,14 @@ class Enemy:
         return False
 
 class NPC(GameObject):
+    '''
+        Класс NPC для создания неписей (неигровых персонажей) в игре.
+        Включает методы для инициализации, взаимодействия и разблокировки дверей.
+        - __init__(self, screen, image_path, position, dialogue_data, door): Инициализирует объект NPC с экраном, путем к изображению, позицией, данными диалогов и дверью.
+        - on_dialogue_complete(self): Вызывается при завершении диалога, активирует врагов и разблокирует дверь.
+        - interact(self): Начинает взаимодействие с NPC, инициирует диалог и активирует врагов при необходимости.
+        - unlock_door(self): Разблокирует дверь после выполнения условий.
+    '''
     def __init__(self, screen, image_path, position, dialogue_data, door):
         super().__init__(screen, image_path, position)
         self.door = door
@@ -323,6 +403,14 @@ class NPC(GameObject):
 
 
 class Dialogue:
+    '''
+        Класс Dialogue для управления диалогами в игре.
+        Включает методы для начала, отображения и обработки диалогов.
+        - __init__(self, conversations, callback=None): Инициализирует объект Dialogue с данными диалогов и callback-функцией.
+        - start_conversation(self, start_key): Начинает диалог с заданного ключа.
+        - display_conversation(self, key): Отображает диалог с заданным ключом.
+        - get_player_input(self, responses): Получает ответ игрока и вызывает соответствующую функцию.
+    '''
     def __init__(self, conversations, callback=None):
         self.conversations = conversations
         self.current_conversation = None
@@ -355,6 +443,14 @@ class Dialogue:
 
 
 class Door(GameObject):
+    '''
+        Класс Door для создания дверей в игре.
+        Включает методы для инициализации, разблокировки, блокировки и взаимодействия с дверями.
+        - __init__(self, screen, image_path, position, from_scene, to_scene, scale=(100, 200)): Инициализирует объект Door с экраном, путем к изображению, позицией, сценами и масштабом.
+        - unlock(self): Разблокирует дверь.
+        - lock(self): Блокирует дверь.
+        - interact(self, character_rect, current_scene): Взаимодействует с дверью, проверяет возможность перехода между сценами.
+    '''
     def __init__(self, screen, image_path, position, from_scene, to_scene, scale=(100, 200)):
         super().__init__(screen, image_path, position, scale)
         self.from_scene = from_scene
@@ -381,6 +477,13 @@ class Door(GameObject):
 
 
 class Wall:
+    '''
+        Класс Wall для создания стен в игре.
+        Включает методы для инициализации, отрисовки и проверки столкновений со стенами.
+        - __init__(self, x, y, width, height): Инициализирует объект Wall с позицией и размерами.
+        - draw(self, screen): Отрисовывает стену на экране.
+        - check_collision(self, character_rect): Проверяет столкновение стены с прямоугольником персонажа.
+    '''
     def __init__(self, x, y, width, height):
         self.rect = pygame.Rect(x, y, width, height)
 
@@ -392,6 +495,13 @@ class Wall:
 
 
 class Auditorium:
+    '''
+        Класс Auditorium для создания аудитории в игре.
+        Включает методы для инициализации, отрисовки и обновления состояния аудитории.
+        - __init__(self, screen, background_image_path, npcs, doors, walls, enemies): Инициализирует объект Auditorium с экраном, путем к фоновому изображению, NPC, дверями, стенами и врагами.
+        - draw(self): Отрисовывает фон, стены, двери, NPC и врагов на экране.
+        - update(self, event): Обновляет состояние аудитории, обрабатывая события взаимодействия с NPC и дверями.
+    '''
     def __init__(self, screen, background_image_path, npcs, doors, walls, enemies):
         self.screen = screen
         self.background = pygame.transform.scale(pygame.image.load(background_image_path), (SCREEN_WIDTH, SCREEN_HEIGHT))
@@ -426,6 +536,15 @@ class Auditorium:
         return None
 
 class SecurityNPC(NPC):
+    '''
+        Класс SecurityNPC наследует NPC для создания охранников в игре.
+        Включает методы для активации врагов и обновления состояния врагов.
+        - __init__(self, screen, image_path, position, door, enemy_spawner, inventory): Инициализирует объект SecurityNPC с экраном, путем к изображению, позицией, дверью, спаунером врагов и инвентарем.
+        - activate_enemies(self): Активирует врагов и разблокирует дверь.
+        - update_enemies(self, character_position): Обновляет состояние врагов и проверяет столкновения с персонажем.
+        - draw_enemies(self): Отрисовывает врагов на экране.
+        - unlock_door(self): Разблокирует дверь после выполнения условий.
+    '''
     def __init__(self, screen, image_path, position, door, enemy_spawner, inventory):
         dialogue_data = {
             "start": ("Привет, первокур! Что тебе нужно?",
@@ -467,6 +586,18 @@ class SecurityNPC(NPC):
             print("Door unlocked!")
 
 class VarvaraNPC(NPC):
+    '''
+        Класс VarvaraNPC наследует NPC для создания персонажа Варвары с викториной в игре.
+        Включает методы для проведения викторины, проверки ответов и отображения результатов.
+        - __init__(self, screen, image_path, position, door, enemy_spawner, inventory): Инициализирует объект VarvaraNPC с экраном, путем к изображению, позицией, дверью, спаунером врагов и инвентарем.
+        - hand_over_schedule(self): Выдает расписание и начинает викторину.
+        - ask_next_question(self): Задает следующий вопрос викторины.
+        - display_question(self, question, options, correct_index): Отображает текущий вопрос викторины и варианты ответов.
+        - get_player_response(self, correct_index): Получает ответ игрока и проверяет его правильность.
+        - show_quiz_results(self): Отображает результаты викторины и завершает диалог.
+        - disappear(self): Убирает Варвару с экрана после завершения диалога.
+        - unlock_door(self): Разблокирует дверь после завершения викторины.
+    '''
     def __init__(self, screen, image_path, position, door, enemy_spawner, inventory):
         self.quiz_questions = [
             ("Как в Python выводится число на экран?", ["print(число)", "echo(число)", "display(число)", "show(число)"], 0),
@@ -582,6 +713,16 @@ class VarvaraNPC(NPC):
             print("Проход в новую локацию открыт!")
 
 class GopnikNPC(NPC):
+    '''
+        Класс GopnikNPC наследует NPC для создания гопников в игре.
+        Включает методы для начала боя, активации волн врагов и обновления состояния врагов.
+        - __init__(self, screen, image_path, position, door, enemy_spawner, inventory): Инициализирует объект GopnikNPC с экраном, путем к изображению, позицией, дверью, спаунером врагов и инвентарем.
+        - start_fight(self): Начинает бой с первой волной гопников.
+        - activate_next_wave(self): Активирует следующую волну гопников.
+        - update_enemies(self, character_position): Обновляет состояние врагов и активирует следующую волну при необходимости.
+        - draw_enemies(self): Отрисовывает врагов на экране.
+        - unlock_door(self): Разблокирует дверь после окончания всех волн.
+    '''
     def __init__(self, screen, image_path, position, door, enemy_spawner, inventory):
         dialogue_data = {
             "start": ("Студент гопник - деньги на булку!?",
@@ -642,6 +783,15 @@ class GopnikNPC(NPC):
             print("Door unlocked!")
 
 class KANPC(NPC):
+    '''
+        Класс KANPC наследует NPC для создания персонажа КА в игре.
+        Включает методы для активации врагов и обновления состояния врагов.
+        - __init__(...): Инициализирует объект KANPC с экраном, путем к изображению, позицией, дверью, спаунером врагов и инвентарем.
+        - activate_enemies(self): Активирует врагов и разблокирует дверь.
+        - update_enemies(self, character_position): Обновляет состояние врагов и проверяет столкновения с персонажем.
+        - draw_enemies(self): Отрисовывает врагов на экране.
+        - unlock_door(self): Разблокирует дверь после выполнения условий.
+    '''
     def __init__(self, screen, image_path, position, door, enemy_spawner, inventory):
         dialogue_data = {
             "start": ("Привет, первокур! Что тебе нужно?",
@@ -685,6 +835,11 @@ class KANPC(NPC):
             print("Door unlocked!")
 
 class ExitDoor(Door):
+    '''
+        Класс ExitDoor наследует Door для создания двери выхода в игре.
+        Включает метод для взаимодействия с дверью.
+        - interact(self, character_rect, current_scene): Взаимодействует с дверью, проверяет возможность перехода между сценами.
+    '''
     def interact(self, character_rect, current_scene):
         return super().interact(character_rect, current_scene)
 

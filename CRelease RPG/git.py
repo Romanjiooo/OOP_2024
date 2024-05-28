@@ -44,7 +44,7 @@ DoorStairtoIU,
 DoorIUtoFinal
 ]
 
-Security = SecurityNPC(screen, "security.png", (400, 150), DoorGameToFaculty, enemy_spawner, inventory)
+Security = SecurityNPC(screen, "security.png", (350, 170), DoorGameToFaculty, enemy_spawner, inventory)
 Varvara = VarvaraNPC(screen, "varvara.png", (200, 450), DoorFacultytoStair, enemy_spawner, inventory)
 Gopnik = GopnikNPC(screen, "enemy_icon.png", (250, 250), DoorStairtoIU, enemy_spawner, inventory)
 KA = KANPC(screen, "KA.png", (250, 300), DoorIUtoFinal, enemy_spawner, inventory)
@@ -57,6 +57,13 @@ npcs = [
 ]
 
 class SecurityLocation(Auditorium):
+    '''
+        Класс SecurityLocation наследует Auditorium для создания и управления локацией охранников.
+        Включает методы для инициализации, обновления состояния врагов и здоровья персонажа.
+        - __init__(self, screen, background_image_path, npcs, doors, walls, enemies, inventory): Инициализирует объект SecurityLocation с экраном, фоновым изображением, NPC, дверями, стенами, врагами и инвентарем.
+        - update(self, event): Обновляет состояние врагов и проверяет столкновения с персонажем.
+        - draw(self): Отрисовывает все элементы локации, включая здоровье и персонажа.
+    '''
     def __init__(self, screen, background_image_path, npcs, doors, walls, enemies, inventory):
         super().__init__(screen, background_image_path, npcs, doors, walls, enemies)
         self.inventory = inventory
@@ -75,6 +82,13 @@ class SecurityLocation(Auditorium):
         game.character.draw()
 
 class FacultyLocation(Auditorium):
+    '''
+        Класс FacultyLocation наследует Auditorium для создания и управления локацией факультета.
+        Включает методы для инициализации, обновления состояния врагов и здоровья персонажа.
+        - __init__(self, screen, background_image_path, npcs, doors, walls, enemies, inventory): Инициализирует объект FacultyLocation с экраном, фоновым изображением, NPC, дверями, стенами, врагами и инвентарем.
+        - update(self, event): Обновляет состояние врагов и проверяет столкновения с персонажем.
+        - draw(self): Отрисовывает все элементы локации, включая здоровье и персонажа.
+    '''
     def __init__(self, screen, background_image_path, npcs, doors, walls, enemies, inventory):
         super().__init__(screen, background_image_path, npcs, doors, walls, enemies)
         self.inventory = inventory
@@ -93,6 +107,13 @@ class FacultyLocation(Auditorium):
         game.character.draw()
 
 class stairLocation(Auditorium):
+    '''
+        Класс stairLocation наследует Auditorium для создания и управления локацией лестницы.
+        Включает методы для инициализации, обновления состояния врагов и здоровья персонажа.
+        - __init__(self, screen, background_image_path, npcs, doors, walls, enemies, inventory): Инициализирует объект stairLocation с экраном, фоновым изображением, NPC, дверями, стенами, врагами и инвентарем.
+        - update(self, event): Обновляет состояние врагов и проверяет столкновения с персонажем.
+        - draw(self): Отрисовывает все элементы локации, включая здоровье и персонажа.
+    '''
     def __init__(self, screen, background_image_path, npcs, doors, walls, enemies, inventory):
         super().__init__(screen, background_image_path, npcs, doors, walls, enemies)
         self.inventory = inventory
@@ -111,6 +132,13 @@ class stairLocation(Auditorium):
         game.character.draw()
 
 class iuLocation(Auditorium):
+    '''
+        Класс iuLocation наследует Auditorium для создания и управления локацией ИУ-404.
+        Включает методы для инициализации, обновления состояния врагов и здоровья персонажа.
+        - __init__(self, screen, background_image_path, npcs, doors, walls, enemies, inventory): Инициализирует объект iuLocation с экраном, фоновым изображением, NPC, дверями, стенами, врагами и инвентарем.
+        - update(self, event): Обновляет состояние врагов и проверяет столкновения с персонажем.
+        - draw(self): Отрисовывает все элементы локации, включая здоровье и персонажа.
+    '''
     def __init__(self, screen, background_image_path, npcs, doors, walls, enemies, inventory):
         super().__init__(screen, background_image_path, npcs, doors, walls, enemies)
         self.inventory = inventory
@@ -129,6 +157,13 @@ class iuLocation(Auditorium):
         game.character.draw()
 
 class finalLocation(Auditorium):
+    '''
+        Класс finalLocation наследует Auditorium для создания и управления финальной локацией.
+        Включает методы для инициализации, обновления состояния врагов и здоровья персонажа.
+        - __init__(self, screen, background_image_path, npcs, doors, walls, enemies, inventory): Инициализирует объект finalLocation с экраном, фоновым изображением, NPC, дверями, стенами, врагами и инвентарем.
+        - update(self, event): Обновляет состояние врагов и проверяет столкновения с персонажем.
+        - draw(self): Отрисовывает все элементы локации, включая здоровье и персонажа.
+    '''
     def __init__(self, screen, background_image_path, npcs, doors, walls, enemies, inventory):
         super().__init__(screen, background_image_path, npcs, doors, walls, enemies)
         self.inventory = inventory
@@ -207,7 +242,6 @@ while True:
 
     if current_scene == "game" and game:
         auditoriums[current_scene].draw()
-        game.update()
 
         if Security.enemies_active:
             Security.update_enemies(game.character.get_position())
@@ -215,19 +249,16 @@ while True:
     elif current_scene == "faculty":
         enemy_spawner.reset_spawn()
         auditoriums[current_scene].draw()
-        game.update()
 
     elif current_scene == "stair":
         enemy_spawner.reset_spawn()
         auditoriums[current_scene].draw()
-        game.update()
         Gopnik.update_enemies(game.character.get_position())
         Gopnik.draw_enemies()
 
     elif current_scene == "iu404":
         enemy_spawner.reset_spawn()
         auditoriums[current_scene].draw()
-        game.update()
 
         if KA.enemies_active:
             KA.update_enemies(game.character.get_position())
