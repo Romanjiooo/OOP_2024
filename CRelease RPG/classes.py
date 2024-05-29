@@ -838,7 +838,7 @@ class ExitDoor(Door):
     '''
         Класс ExitDoor наследует Door для создания двери выхода в игре.
         Включает метод для взаимодействия с дверью.
-        - interact(self, character_rect, current_scene): Взаимодействует с дверью, проверяет возможность перехода между сценами.
+        - interact(self, character_rect, current_scene):Взаимодействует с дверью, проверяет возможность перехода между сценами.
     '''
     def interact(self, character_rect, current_scene):
         return super().interact(character_rect, current_scene)
