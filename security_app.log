@@ -1,0 +1,25 @@
+2024-06-06 13:53:26,199:INFO:Webcam image captured and encrypted: C:/Users/rmnjo/Downloads/AyuGram Desktop/lolololo.dat
+2024-06-06 14:19:27,841:INFO:Webcam image captured and encrypted: C:/Users/rmnjo/Downloads/AyuGram Desktop/lolololo.dat
+2024-06-06 17:20:59,650:ERROR:Error decrypting image: 
+2024-06-06 17:21:15,319:INFO:Screenshot captured and encrypted: C:/Users/rmnjo/Downloads/AyuGram Desktop/\u0442\u0434\u043e\u0442\u043e\u0434\u043e\u0442.dat
+2024-06-06 17:28:06,090:ERROR:Error decrypting video: 
+2024-06-06 17:28:19,293:INFO:Video encrypted: C:/Users/rmnjo/Downloads/AyuGram Desktop/\u044f \u043d\u0435 \u0443\u043c\u0435\u044e.mp4
+2024-06-06 17:28:27,235:INFO:Video decrypted: C:/Users/rmnjo/Downloads/AyuGram Desktop/\u0443\u0431\u0438\u0432\u0430\u0442\u044c.dat
+2024-06-06 17:31:25,416:ERROR:Error downloading video: <urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: Hostname mismatch, certificate is not valid for 'www.sample-videos.com'. (_ssl.c:1000)>
+2024-06-06 17:32:07,457:INFO:Drone video downloaded: downloaded_drone_video.mp4
+2024-06-06 17:32:07,673:INFO:Drone video encrypted: downloaded_drone_video.mp4
+2024-06-06 17:32:45,845:INFO:Screenshot captured and encrypted: C:/Users/rmnjo/Downloads/AyuGram Desktop/bbx.dat
+2024-06-06 17:40:18,265:INFO:Screenshot captured and encrypted: C:/Users/rmnjo/Downloads/AyuGram Desktop/\u0432\u043f\u0440\u0430.dat
+2024-06-06 17:41:12,245:INFO:Drone video downloaded: downloaded_drone_video.mp4
+2024-06-06 17:41:12,333:INFO:Drone video encrypted: downloaded_drone_video.mp4
+2024-06-06 17:41:56,015:ERROR:Error decrypting video: 
+2024-06-06 17:42:21,468:INFO:Video encrypted: C:/Users/rmnjo/Downloads/AyuGram Desktop/\u0423\u043c\u043d\u044b\u0438\u0306_\u043c\u0430\u0440\u043a\u0435\u0442\u0438\u043d\u0433_\u043f\u043e\u043b\u044c\u0441\u043a\u0438\u0438\u0306_\u0431\u0430\u0440\u0431\u0435\u0440\u0448\u043e\u043f.mp4
+2024-06-06 17:51:45,557:INFO:\u0418\u0437\u043e\u0431\u0440\u0430\u0436\u0435\u043d\u0438\u0435 \u0437\u0430\u0448\u0438\u0444\u0440\u043e\u0432\u0430\u043d\u043e: C:/Users/rmnjo/Downloads/AyuGram Desktop/Bilet_29.png
+2024-06-06 17:51:54,596:INFO:\u0418\u0437\u043e\u0431\u0440\u0430\u0436\u0435\u043d\u0438\u0435 \u0434\u0435\u0448\u0438\u0444\u0440\u043e\u0432\u0430\u043d\u043e: C:/Users/rmnjo/Downloads/AyuGram Desktop/test1.dat
+2024-06-06 17:52:20,836:INFO:\u0412\u0438\u0434\u0435\u043e \u0437\u0430\u0448\u0438\u0444\u0440\u043e\u0432\u0430\u043d\u043e: C:/Users/rmnjo/Downloads/AyuGram Desktop/\u0423\u043c\u043d\u044b\u0438\u0306_\u043c\u0430\u0440\u043a\u0435\u0442\u0438\u043d\u0433_\u043f\u043e\u043b\u044c\u0441\u043a\u0438\u0438\u0306_\u0431\u0430\u0440\u0431\u0435\u0440\u0448\u043e\u043f.mp4
+2024-06-06 17:52:28,327:INFO:\u0412\u0438\u0434\u0435\u043e \u0434\u0435\u0448\u0438\u0444\u0440\u043e\u0432\u0430\u043d\u043e: C:/Users/rmnjo/Downloads/AyuGram Desktop/test2.dat
+2024-06-06 17:53:37,431:INFO:\u0412\u0438\u0434\u0435\u043e \u0441 \u0434\u0440\u043e\u043d\u0430 \u0437\u0430\u0433\u0440\u0443\u0436\u0435\u043d\u043e: downloaded_drone_video.mp4
+2024-06-06 17:53:37,523:INFO:\u0412\u0438\u0434\u0435\u043e \u0441 \u0434\u0440\u043e\u043d\u0430 \u0437\u0430\u0448\u0438\u0444\u0440\u043e\u0432\u0430\u043d\u043e: downloaded_drone_video.mp4
+2024-06-06 17:54:22,767:INFO:\u0418\u0437\u043e\u0431\u0440\u0430\u0436\u0435\u043d\u0438\u0435 \u0441 \u0432\u0435\u0431-\u043a\u0430\u043c\u0435\u0440\u044b \u0437\u0430\u0445\u0432\u0430\u0447\u0435\u043d\u043e \u0438 \u0437\u0430\u0448\u0438\u0444\u0440\u043e\u0432\u0430\u043d\u043e: C:/Users/rmnjo/Downloads/AyuGram Desktop/test4.dat
+2024-06-06 17:54:34,071:INFO:\u0421\u043d\u0438\u043c\u043e\u043a \u044d\u043a\u0440\u0430\u043d\u0430 \u0437\u0430\u0445\u0432\u0430\u0447\u0435\u043d \u0438 \u0437\u0430\u0448\u0438\u0444\u0440\u043e\u0432\u0430\u043d: C:/Users/rmnjo/Downloads/AyuGram Desktop/test5.dat
+2024-06-06 23:17:59,624:INFO:\u0418\u0437\u043e\u0431\u0440\u0430\u0436\u0435\u043d\u0438\u0435 \u0441 \u0432\u0435\u0431-\u043a\u0430\u043c\u0435\u0440\u044b \u0437\u0430\u0445\u0432\u0430\u0447\u0435\u043d\u043e \u0438 \u0437\u0430\u0448\u0438\u0444\u0440\u043e\u0432\u0430\u043d\u043e: C:/Users/rmnjo/Downloads/AyuGram Desktop/kjhk.dat
