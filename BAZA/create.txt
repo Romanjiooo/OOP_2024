@@ -1,0 +1,11 @@
+Star 30 red 400 400 2
+Planet 5 green 600 400 3 2
+Satelite 2 white 680 400 7 22
+
+Star 30 red 0 400 1
+Planet 5 green 200 400 3 1
+Satelite 2 white 250 400 12 11
+
+Star 30 red -400 400 3
+Planet 5 green -600 400 3 3
+Satelite 2 white -680 400 19 33
