@@ -1,7 +1,30 @@
-Шуточная игра про наш ВУЗ МГТУ на Python (ООП)
-Является Курсовой работой выполненной мной
-(Также расположены все лабораторные которые были за семестр + программа для экзамена)
-Про игру - все лежит в CRelease RPG - сделана в стиле 2D. Диалоги происходят в консоли (так была дана тема курсовой работы). Запускается
+# OOP_2024 — BMSTU Projects (Python)
+
+Учебный репозиторий с двумя курсовыми работами МГТУ им. Н. Э. Баумана:
+
+- **BMSTU RPG** — 2D-игра на **Pygame** (ООП, сцены, NPC, боёвка, столкновения).
+- **Encryption GUI** — настольное **Tkinter/OpenCV** приложение для шифрования/дешифрования изображений, видео, веб-камеры и скриншотов с логированием и метаданными.
+
+> Если вы здесь из резюме: ключевые файлы — `git.py` и `classes.py` (игра) и `leaks.py` (GUI).
+
+## Быстрый старт
+
+### Вариант A — через venv + requirements.txt
+
+# Клонировать
+git clone https://github.com/Romanjiooo/OOP_2024.git
+cd OOP_2024
+
+# Создать и активировать виртуальное окружение
+# Windows
+python -m venv .venv
+.venv\Scripts\activate
+# macOS/Linux
+# python3 -m venv .venv
+# source .venv/bin/activate
+
+# Установить зависимости
+pip install -r requirements.txt
 
 <img width="1223" height="699" alt="image" src="https://github.com/user-attachments/assets/b8c09c30-7e2c-4404-96c3-c6c324ad4910" />
 <img width="1402" height="782" alt="image" src="https://github.com/user-attachments/assets/2a1e842e-df26-405d-a279-70b342b58087" />
