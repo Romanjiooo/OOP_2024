@@ -1,1 +1,3 @@
-![Иллюстрация к проекту](https://drive.google.com/u/0/drive-viewer/AKGpihb63KLR2bv4Wa10k2Xoo5NPmdCpPDVt4DYc2MfsNilUe6J6ISMQjIgmaqrOo2oc4oOnV9KRbK6JoONrR8OXd9kFn0fKBDjVT1E=s0)
+
+<img width="1223" height="699" alt="image" src="https://github.com/user-attachments/assets/b8c09c30-7e2c-4404-96c3-c6c324ad4910" />
+
